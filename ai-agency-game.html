@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agency Tycoon 2026 — Hit ₹1 Lakh Selling AI Websites</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;--panel:#0f1623;--card:#151e2e;--border:#1e2d45;
+  --green:#00ff9f;--blue:#38bdf8;--purple:#a78bfa;--orange:#fb923c;
+  --red:#f87171;--yellow:#fbbf24;--text:#cbd5e1;--muted:#475569;
+  --green2:#059669;
+}
+html,body{height:100%;overflow:hidden;font-family:'Courier New',monospace;background:var(--bg);color:var(--text)}
+
+/* ── TOP BAR ── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:var(--panel);border-bottom:1px solid var(--border);
+  height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;
+}
+#topbar .logo{color:var(--green);font-weight:bold;font-size:1rem;text-shadow:0 0 12px var(--green);white-space:nowrap}
+.pill{
+  display:flex;align-items:center;gap:6px;background:var(--card);
+  border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:0.78rem;
+  white-space:nowrap;
+}
+.pill .lbl{color:var(--muted)}
+.pill .val{font-weight:bold}
+#goalWrap{flex:1;min-width:160px;max-width:260px}
+#goalWrap .glbl{font-size:0.68rem;color:var(--muted);display:flex;justify-content:space-between}
+#goalTrack{height:7px;background:var(--card);border-radius:4px;overflow:hidden;margin-top:3px;border:1px solid var(--border)}
+#goalFill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:4px;transition:width .6s ease;box-shadow:0 0 8px var(--green);width:0%}
+#dayBtn{
+  margin-left:auto;background:var(--green);color:var(--bg);border:none;
+  border-radius:8px;padding:8px 18px;font-family:'Courier New',monospace;
+  font-weight:bold;font-size:0.85rem;cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+#dayBtn:hover{filter:brightness(1.15);transform:scale(1.04)}
+.wkbadge{background:var(--blue);color:#000;border-radius:10px;padding:3px 10px;font-size:0.78rem;font-weight:bold;white-space:nowrap}
+
+/* ── LAYOUT ── */
+#layout{
+  position:fixed;top:56px;left:0;right:0;bottom:0;
+  display:grid;grid-template-columns:188px 1fr 330px;grid-template-rows:1fr 100px;
+}
+
+/* ── LEFT SIDEBAR ── */
+#sidebar{
+  background:var(--panel);border-right:1px solid var(--border);
+  overflow-y:auto;padding:14px 10px;grid-row:1/3;
+}
+#sidebar h3{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 6px}
+.cred-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:4px}
+.cred-box .cl{font-size:0.65rem;color:var(--muted)}
+.cred-num{font-size:1.6rem;font-weight:bold;color:var(--blue)}
+.cred-track{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:5px}
+.cred-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .5s;box-shadow:0 0 6px var(--blue)}
+.dist-btn{
+  display:block;width:100%;text-align:left;padding:8px 10px;
+  border-radius:7px;border:1px solid transparent;background:transparent;
+  color:var(--text);font-family:'Courier New',monospace;font-size:0.78rem;
+  cursor:pointer;margin-bottom:4px;transition:all .2s;
+}
+.dist-btn:hover,.dist-btn.on{background:var(--card);border-color:var(--green);color:var(--green)}
+.dist-btn .cnt{float:right;background:var(--bg);border-radius:8px;padding:1px 6px;font-size:0.65rem;color:var(--muted)}
+.mkt-row{display:flex;justify-content:space-between;font-size:0.75rem;padding:3px 0;border-bottom:1px solid var(--border)}
+.mkt-row .mv{font-weight:bold}
+
+/* ── CITY MAP ── */
+#cityMap{
+  background:var(--bg);overflow:auto;padding:16px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-content:start;
+}
+
+/* ── BUILDING CARD ── */
+.bcard{
+  background:var(--card);border:2px solid var(--border);border-radius:12px;
+  padding:12px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden;
+}
+.bcard::after{content:'';position:absolute;inset:0;border-radius:10px;opacity:0;transition:opacity .3s;background:radial-gradient(circle at 30% 20%,var(--glow,#00ff9f),transparent 60%)}
+.bcard:hover{transform:translateY(-3px);border-color:var(--green);box-shadow:0 6px 24px rgba(0,255,159,.12)}
+.bcard:hover::after{opacity:.06}
+.bcard.sel{border-color:var(--green);box-shadow:0 0 22px rgba(0,255,159,.2)}
+.bcard.s-client{border-color:#fbbf2466;animation:glow-pulse 2.5s infinite}
+.bcard.s-building{border-color:#38bdf866}
+.bcard.s-built{border-color:#a78bfa66;animation:built-pulse 1.5s infinite}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}50%{box-shadow:0 0 16px 3px rgba(251,191,36,.18)}}
+@keyframes built-pulse{0%,100%{box-shadow:0 0 0 0 rgba(167,139,250,0)}50%{box-shadow:0 0 16px 3px rgba(167,139,250,.25)}}
+.bicon{font-size:2rem;display:block;margin-bottom:6px}
+.bname{font-size:0.82rem;font-weight:bold;line-height:1.2;margin-bottom:1px}
+.btype{font-size:0.65rem;color:var(--muted);margin-bottom:7px}
+.bstatus{display:inline-block;font-size:0.6rem;padding:2px 7px;border-radius:8px;font-weight:bold}
+.st-new{background:rgba(71,85,105,.25);color:var(--muted)}
+.st-pitched{background:rgba(251,146,60,.15);color:var(--orange)}
+.st-building{background:rgba(56,189,248,.12);color:var(--blue)}
+.st-built{background:rgba(167,139,250,.15);color:var(--purple)}
+.st-client{background:rgba(0,255,159,.1);color:var(--green)}
+.brev{font-size:0.7rem;color:var(--green);margin-top:5px;font-weight:bold}
+.pitch-track{height:3px;background:var(--bg);border-radius:2px;overflow:hidden;margin-top:5px}
+.pitch-fill{height:100%;border-radius:2px;transition:width .5s}
+.build-days{font-size:0.68rem;color:var(--blue);margin-top:3px}
+
+/* ── RIGHT PANEL ── */
+#rpanel{background:var(--panel);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+#rpinner{padding:14px;flex:1}
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty-state .ei{font-size:3rem;display:block;margin-bottom:12px}
+.chdr{display:flex;gap:10px;align-items:flex-start;margin-bottom:14px}
+.cbig{width:54px;height:54px;background:var(--card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0}
+.cinfo h2{font-size:0.95rem;margin-bottom:2px}
+.cinfo p{font-size:0.72rem;color:var(--muted);line-height:1.5}
+.cinfo .budget{color:var(--yellow);font-size:0.78rem;margin-top:3px}
+.sec-title{font-size:0.62rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:12px 0 8px}
+.pkg-card{border:1px solid var(--border);border-radius:8px;padding:9px;margin-bottom:6px;cursor:pointer;transition:all .2s}
+.pkg-card:hover{border-color:var(--green)}
+.pkg-card.sel-pkg{border-color:var(--green);background:rgba(0,255,159,.04)}
+.pkg-name{font-size:0.85rem;font-weight:bold}
+.pkg-prices{display:flex;gap:10px;margin-top:3px}
+.pkg-once{color:var(--green);font-size:0.8rem}
+.pkg-mo{color:var(--yellow);font-size:0.75rem}
+.pkg-cr{color:var(--blue);font-size:0.68rem;margin-top:2px}
+.pkg-feats{margin-top:7px;list-style:none;display:none}
+.pkg-card.sel-pkg .pkg-feats{display:block}
+.pkg-feats li{font-size:0.68rem;color:var(--muted);padding-left:12px;position:relative;line-height:1.7}
+.pkg-feats li::before{content:'✓';position:absolute;left:0;color:var(--green)}
+.best-tag{font-size:0.6rem;color:var(--green);margin-left:6px}
+.pbar-wrap{margin-top:10px}
+.pbar-wrap .lbl{font-size:0.68rem;color:var(--muted);display:flex;justify-content:space-between}
+.pbar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:4px;border:1px solid var(--border)}
+.pbar-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--green));border-radius:3px;transition:width .5s}
+.act-btns{margin-top:14px;display:flex;flex-direction:column;gap:7px}
+.abtn{
+  padding:10px 14px;border-radius:8px;border:none;
+  font-family:'Courier New',monospace;font-size:0.82rem;font-weight:bold;
+  cursor:pointer;transition:all .2s;width:100%;text-align:left;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.abtn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+.abtn:hover:not(:disabled){transform:translateX(4px);filter:brightness(1.1)}
+.btn-p{background:rgba(251,146,60,.12);color:var(--orange);border:1px solid rgba(251,146,60,.3)}
+.btn-b{background:rgba(56,189,248,.1);color:var(--blue);border:1px solid rgba(56,189,248,.25)}
+.btn-c{background:rgba(0,255,159,.08);color:var(--green);border:1px solid rgba(0,255,159,.25)}
+.btn-r{background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.25)}
+.acost{font-size:0.68rem;opacity:.8}
+.building-msg{text-align:center;padding:14px;color:var(--blue);font-size:0.82rem;background:rgba(56,189,248,.06);border-radius:8px;border:1px solid rgba(56,189,248,.2)}
+.client-box{background:rgba(0,255,159,.04);border:1px solid rgba(0,255,159,.2);border-radius:8px;padding:12px;margin-bottom:10px}
+.client-box .ct{color:var(--green);font-weight:bold;font-size:0.85rem;margin-bottom:4px}
+.client-box .cs{font-size:0.75rem;color:var(--muted);line-height:1.6}
+
+/* ── BOTTOM LOG ── */
+#logBar{
+  grid-column:2/3;background:var(--panel);border-top:1px solid var(--border);
+  padding:8px 12px;overflow-x:auto;display:flex;align-items:center;gap:7px;
+}
+.loge{
+  background:var(--card);border-radius:6px;padding:5px 9px;font-size:0.68rem;
+  white-space:nowrap;border:1px solid var(--border);flex-shrink:0;
+}
+.loge.ok{border-color:rgba(0,255,159,.3);color:var(--green)}
+.loge.inf{border-color:rgba(56,189,248,.3);color:var(--blue)}
+.loge.wrn{border-color:rgba(251,146,60,.3);color:var(--orange)}
+.loge.err{border-color:rgba(248,113,113,.3);color:var(--red)}
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:800;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.on{opacity:1;pointer-events:all}
+.mbox{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:400px;width:92%;text-align:center;transform:scale(.92);transition:transform .3s}
+.overlay.on .mbox{transform:scale(1)}
+.mbox .mic{font-size:3rem;margin-bottom:14px}
+.mbox h2{font-size:1.15rem;margin-bottom:7px}
+.mbox p{color:var(--muted);font-size:0.83rem;margin-bottom:18px;line-height:1.5}
+.mbox .mrev{font-size:2rem;font-weight:bold;color:var(--green);text-shadow:0 0 18px var(--green);margin-bottom:18px}
+.mbtn{background:var(--green);color:var(--bg);border:none;border-radius:8px;padding:9px 22px;font-family:'Courier New',monospace;font-weight:bold;font-size:0.95rem;cursor:pointer;transition:all .2s}
+.mbtn:hover{filter:brightness(1.1);transform:scale(1.03)}
+
+/* ── WIN SCREEN ── */
+#winScreen{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+#winScreen.on{display:flex}
+.wt{font-size:2.8rem;font-weight:bold;color:var(--green);text-shadow:0 0 30px var(--green);margin-bottom:8px;animation:wpulse 1.2s infinite alternate}
+@keyframes wpulse{from{filter:brightness(1)}to{filter:brightness(1.5)}}
+.ws{color:var(--muted);font-size:1.05rem;margin-bottom:26px}
+.wstats{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-bottom:24px}
+.wstat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 20px;min-width:130px}
+.wstat .wl{font-size:0.68rem;color:var(--muted);margin-bottom:3px}
+.wstat .wv{font-size:1.4rem;font-weight:bold;color:var(--green)}
+
+/* ── TUTORIAL ── */
+#tutWrap{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;display:flex;align-items:center;justify-content:center}
+.tutbox{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:30px;max-width:520px;width:94%}
+.tutbox h1{color:var(--green);font-size:1.4rem;margin-bottom:6px;text-shadow:0 0 12px var(--green)}
+.tutbox .sub{color:var(--muted);font-size:0.85rem;margin-bottom:20px}
+.tut-step{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start}
+.tut-num{width:28px;height:28px;background:var(--green);color:var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:0.85rem;flex-shrink:0}
+.tut-step .td h3{font-size:0.88rem;margin-bottom:2px}
+.tut-step .td p{font-size:0.75rem;color:var(--muted);line-height:1.5}
+.pkg-tbl{width:100%;border-collapse:collapse;margin:16px 0;font-size:0.75rem}
+.pkg-tbl th{background:var(--card);color:var(--muted);padding:6px 10px;text-align:left;border:1px solid var(--border)}
+.pkg-tbl td{padding:6px 10px;border:1px solid var(--border)}
+.pkg-tbl tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ── FLOAT TEXT ── */
+@keyframes floatUp{from{transform:translateY(0);opacity:1}to{transform:translateY(-50px);opacity:0}}
+.ft{position:fixed;font-weight:bold;font-size:1rem;pointer-events:none;animation:floatUp 1.4s ease-out forwards;z-index:999}
+
+/* ── MONTH BANNER ── */
+#mBanner{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  background:linear-gradient(90deg,var(--blue),var(--purple));
+  color:#fff;text-align:center;padding:7px;font-size:0.85rem;font-weight:bold;
+  transform:translateY(-100%);transition:transform .5s;
+}
+#mBanner.on{transform:translateY(0)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- MONTH BANNER -->
+<div id="mBanner">🔄 New Month! Credits reset to 200</div>
+
+<!-- TUTORIAL -->
+<div id="tutWrap">
+  <div class="tutbox">
+    <h1>⚡ AI Agency Tycoon 2026</h1>
+    <div class="sub">You sell AI-powered websites to Indian SMBs using Lovable. Hit ₹1,00,000 to win!</div>
+
+    <div class="tut-step">
+      <div class="tut-num">1</div>
+      <div class="td"><h3>📣 Pitch a Business</h3><p>Click any building on the map → press <strong>Send Pitch</strong>. Free action. Each pitch boosts your close chance by 5–8%. Max 3 pitches per client.</p></div>
+    </div>
+    <div class="tut-step">
+      <div class="tut-num">2</div>
+      <div class="td"><h3>🔨 Build the Website</h3><p>After pitching, choose a package and hit <strong>Build Website</strong>. This costs Lovable credits (30–55). Building takes days — click <em>Next Day</em> to advance time.</p></div>
+    </div>
+    <div class="tut-step">
+      <div class="tut-num">3</div>
+      <div class="td"><h3>🤝 Close the Deal</h3><p>Once built, close as a <strong>one-time payment</strong> or <strong>monthly retainer</strong>. Retainers earn you MRR every month when credits reset.</p></div>
+    </div>
+    <div class="tut-step">
+      <div class="tut-num">4</div>
+      <div class="td"><h3>💳 Credits = Lovable Plan</h3><p>You start with 200 credits/month (the $50 Pro plan). Each build spends 30–55. Credits reset monthly. Don't blow them all on one client!</p></div>
+    </div>
+
+    <table class="pkg-tbl">
+      <thead><tr><th>Package</th><th>One-Time</th><th>Monthly Retainer</th><th>Credits</th></tr></thead>
+      <tbody>
+        <tr><td>⚡ AI Starter</td><td style="color:var(--green)">₹20,000</td><td style="color:var(--yellow)">₹8,000/mo</td><td style="color:var(--blue)">30 cr</td></tr>
+        <tr><td>🚀 AI Professional</td><td style="color:var(--green)">₹35,000</td><td style="color:var(--yellow)">₹12,000/mo</td><td style="color:var(--blue)">45 cr</td></tr>
+        <tr><td>💎 AI Enterprise</td><td style="color:var(--green)">₹60,000</td><td style="color:var(--yellow)">₹20,000/mo</td><td style="color:var(--blue)">55 cr</td></tr>
+      </tbody>
+    </table>
+
+    <button class="mbtn" style="width:100%;font-size:1rem" onclick="startGame()">🚀 Start Building My Agency</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo">⚡ AI Agency Tycoon 2026</div>
+  <div class="pill"><span class="lbl">💰 Revenue</span><span class="val" id="tRevenue" style="color:var(--green)">₹0</span></div>
+  <div class="pill"><span class="lbl">📈 MRR</span><span class="val" id="tMRR" style="color:var(--purple)">₹0</span></div>
+  <div class="pill"><span class="lbl">👥 Clients</span><span class="val" id="tClients" style="color:var(--yellow)">0</span></div>
+  <div id="goalWrap">
+    <div class="glbl"><span>Goal: ₹1,00,000</span><span id="goalPct">0%</span></div>
+    <div id="goalTrack"><div id="goalFill"></div></div>
+  </div>
+  <div class="wkbadge">Wk <span id="wkNum">1</span> · Day <span id="dyNum">1</span></div>
+  <button id="dayBtn" onclick="nextDay()">Next Day ▶</button>
+</div>
+
+<!-- LAYOUT -->
+<div id="layout">
+
+  <!-- LEFT SIDEBAR -->
+  <div id="sidebar">
+    <div class="cred-box">
+      <div class="cl">Lovable Credits</div>
+      <div class="cred-num" id="credNum">200</div>
+      <div style="font-size:0.65rem;color:var(--muted)">/200 this month</div>
+      <div class="cred-track"><div class="cred-fill" id="credFill" style="width:100%"></div></div>
+    </div>
+
+    <h3>Districts</h3>
+    <button class="dist-btn on" id="dist-all" onclick="setDistrict('all')">🗺️ All <span class="cnt" id="c-all">15</span></button>
+    <button class="dist-btn" id="dist-education" onclick="setDistrict('education')">🏫 Education <span class="cnt" id="c-education">0</span></button>
+    <button class="dist-btn" id="dist-healthcare" onclick="setDistrict('healthcare')">🏥 Healthcare <span class="cnt" id="c-healthcare">0</span></button>
+    <button class="dist-btn" id="dist-business" onclick="setDistrict('business')">💼 Business <span class="cnt" id="c-business">0</span></button>
+    <button class="dist-btn" id="dist-food" onclick="setDistrict('food')">🍽️ Food & Retail <span class="cnt" id="c-food">0</span></button>
+
+    <h3 style="margin-top:14px">Market Intel</h3>
+    <div style="font-size:0.72rem">
+      <div class="mkt-row"><span>AI sites</span><span class="mv" style="color:var(--green)">Trending ↑</span></div>
+      <div class="mkt-row"><span>AEO demand</span><span class="mv" style="color:var(--green)">High</span></div>
+      <div class="mkt-row"><span>Chatbots</span><span class="mv" style="color:var(--orange)">Booming</span></div>
+      <div class="mkt-row"><span>Avg close rate</span><span class="mv" style="color:var(--blue)">~74%</span></div>
+      <div class="mkt-row" style="border:none"><span>Competition</span><span class="mv" style="color:var(--orange)">Medium</span></div>
+    </div>
+
+    <h3 style="margin-top:14px">Tips</h3>
+    <div style="font-size:0.68rem;color:var(--muted);line-height:1.8">
+      • 3 pitches = max close rate<br>
+      • Retainers pay every month<br>
+      • Credits reset monthly<br>
+      • 4 closes @ ₹30k = ₹1.2L<br>
+      • Build schools first (easy)
+    </div>
+  </div>
+
+  <!-- CITY MAP -->
+  <div id="cityMap"></div>
+
+  <!-- RIGHT PANEL -->
+  <div id="rpanel">
+    <div id="rpinner">
+      <div class="empty-state">
+        <span class="ei">🏙️</span>
+        <div style="font-size:0.92rem;margin-bottom:8px;color:var(--text)">Click a building to start</div>
+        <div style="font-size:0.75rem">Pitch → Build → Close → Profit</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG BAR -->
+  <div id="logBar">
+    <div class="loge inf">🎮 Welcome! Click a building on the map to make your first pitch →</div>
+  </div>
+</div>
+
+<!-- RESULT MODAL -->
+<div class="overlay" id="resultModal">
+  <div class="mbox">
+    <div class="mic" id="mIcon">🎉</div>
+    <h2 id="mTitle">Deal Closed!</h2>
+    <p id="mDesc">Nice work closing that deal.</p>
+    <div class="mrev" id="mRev"></div>
+    <button class="mbtn" onclick="closeModal()">Continue →</button>
+  </div>
+</div>
+
+<!-- WIN SCREEN -->
+<div id="winScreen">
+  <div class="wt">🏆 ₹1 LAKH ACHIEVED!</div>
+  <div class="ws">You built a profitable AI website agency — in India — from scratch!</div>
+  <div class="wstats">
+    <div class="wstat"><div class="wl">Total Revenue</div><div class="wv" id="wRev">₹0</div></div>
+    <div class="wstat"><div class="wl">Clients Closed</div><div class="wv" id="wCl">0</div></div>
+    <div class="wstat"><div class="wl">Days Taken</div><div class="wv" id="wDy">0</div></div>
+    <div class="wstat"><div class="wl">Credits Used</div><div class="wv" id="wCr">0</div></div>
+    <div class="wstat"><div class="wl">MRR Earned</div><div class="wv" id="wMrr">₹0/mo</div></div>
+  </div>
+  <button class="mbtn" onclick="restart()">▶ Play Again</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  PACKAGES
+// ══════════════════════════════════════════════════
+const PKG = {
+  starter:{id:'starter',name:'AI Starter Site',icon:'⚡',oneTime:20000,monthly:8000,credits:30,days:5,color:'#64748b',
+    feats:['5-page AI website','Basic AI chatbot','llms.txt setup','Schema markup','Mobile responsive']},
+  professional:{id:'professional',name:'AI Professional Site',icon:'🚀',oneTime:35000,monthly:12000,credits:45,days:7,color:'#38bdf8',
+    feats:['10-page AI website','Advanced chatbot + Doc Q&A','Full AEO setup','Analytics dashboard','LLM visibility suite']},
+  enterprise:{id:'enterprise',name:'AI Enterprise Site',icon:'💎',oneTime:60000,monthly:20000,credits:55,days:10,color:'#a78bfa',
+    feats:['20+ page AI website','Custom AI workflows','Full LLM & AEO setup','Priority support 30 days','Monthly optimisation']}
+};
+
+// ══════════════════════════════════════════════════
+//  BUILDING TYPES
+// ══════════════════════════════════════════════════
+const BT = {
+  school:{name:'School',icon:'🏫',color:'#4ade80',district:'education',budget:'₹25k–₹40k',
+    pain:'Admissions chatbot, parent queries',bestPkg:'professional',closeRate:0.82,boost:0.06},
+  college:{name:'College',icon:'🎓',color:'#86efac',district:'education',budget:'₹35k–₹60k',
+    pain:'Course discovery, admission AI',bestPkg:'professional',closeRate:0.76,boost:0.07},
+  clinic:{name:'Clinic',icon:'🏥',color:'#60a5fa',district:'healthcare',budget:'₹30k–₹50k',
+    pain:'Appointment booking, patient FAQs',bestPkg:'professional',closeRate:0.74,boost:0.07},
+  hospital:{name:'Hospital',icon:'🏨',color:'#93c5fd',district:'healthcare',budget:'₹55k–₹90k',
+    pain:'Multi-dept AI, patient flow',bestPkg:'enterprise',closeRate:0.60,boost:0.08},
+  hrfirm:{name:'HR Firm',icon:'💼',color:'#c084fc',district:'business',budget:'₹35k–₹60k',
+    pain:'Candidate screening, HR chatbot',bestPkg:'professional',closeRate:0.66,boost:0.07},
+  startup:{name:'Startup',icon:'🚀',color:'#fb923c',district:'business',budget:'₹20k–₹35k',
+    pain:'Fast AI-first launch',bestPkg:'starter',closeRate:0.78,boost:0.08},
+  realestate:{name:'Real Estate',icon:'🏠',color:'#2dd4bf',district:'business',budget:'₹30k–₹55k',
+    pain:'Property AI search, lead capture',bestPkg:'professional',closeRate:0.70,boost:0.07},
+  restaurant:{name:'Restaurant',icon:'🍽️',color:'#fbbf24',district:'food',budget:'₹18k–₹30k',
+    pain:'Menu AI, table reservation bot',bestPkg:'starter',closeRate:0.80,boost:0.08},
+  ecommerce:{name:'E-commerce',icon:'🛒',color:'#f43f5e',district:'food',budget:'₹45k–₹75k',
+    pain:'Product discovery AI, order support',bestPkg:'enterprise',closeRate:0.66,boost:0.06}
+};
+
+// ══════════════════════════════════════════════════
+//  PROSPECTS
+// ══════════════════════════════════════════════════
+const PROSPECTS = [
+  {type:'school',name:'VMHSS School',loc:'Chennai'},
+  {type:'school',name:"St. John's Academy",loc:'Bangalore'},
+  {type:'college',name:'Sri Vidya College',loc:'Coimbatore'},
+  {type:'clinic',name:'Dr. Priya Dental',loc:'Chennai'},
+  {type:'clinic',name:'Apollo Skin Clinic',loc:'Coimbatore'},
+  {type:'hospital',name:'Meenakshi Hospital',loc:'Madurai'},
+  {type:'hrfirm',name:'MinMaxHR Solutions',loc:'Chennai'},
+  {type:'hrfirm',name:'TalentBridge India',loc:'Pune'},
+  {type:'startup',name:'FinTech Nexus',loc:'Bangalore'},
+  {type:'startup',name:'AgriTech Startup',loc:'Coimbatore'},
+  {type:'restaurant',name:'Saravana Bhavan',loc:'Chennai'},
+  {type:'restaurant',name:'Spice Garden',loc:'Mumbai'},
+  {type:'ecommerce',name:'FashionBazaar.in',loc:'Delhi'},
+  {type:'realestate',name:'PropEase Realty',loc:'Chennai'},
+  {type:'college',name:'Vel Tech Institute',loc:'Chennai'},
+];
+
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+let S = {};
+function initState(){
+  S = {
+    week:1,day:1,totalDays:0,
+    credits:200,maxCredits:200,creditsUsed:0,
+    revenue:0,mrr:0,mrrPaid:0,clientsClosed:0,
+    selId:null,selPkg:null,
+    district:'all',
+    won:false,
+    buildings:PROSPECTS.map((p,i)=>({
+      id:i,...p,
+      bt:BT[p.type],
+      status:'new',          // new | pitched | building | built | client
+      pitchCount:0,
+      closeChance:BT[p.type].closeRate,
+      buildDaysLeft:0,
+      pkg:null,
+      isRetainer:false,
+      monthlyRev:0,
+      totalEarned:0
+    }))
+  };
+}
+
+// ══════════════════════════════════════════════════
+//  START / RESTART
+// ══════════════════════════════════════════════════
+function startGame(){
+  document.getElementById('tutWrap').style.display='none';
+  initState();
+  renderCity();
+  updateCounts();
+  updateStats();
+}
+function restart(){
+  document.getElementById('winScreen').classList.remove('on');
+  initState();
+  renderCity();
+  updateCounts();
+  updateStats();
+  document.getElementById('rpinner').innerHTML=`<div class="empty-state"><span class="ei">🏙️</span><div style="font-size:.92rem;margin-bottom:8px;color:var(--text)">Click a building to start</div><div style="font-size:.75rem">Pitch → Build → Close → Profit</div></div>`;
+  document.getElementById('logBar').innerHTML=`<div class="loge inf">🎮 New game! Click a building to pitch →</div>`;
+  document.getElementById('wkNum').textContent=1;
+  document.getElementById('dyNum').textContent=1;
+}
+
+// ══════════════════════════════════════════════════
+//  RENDER CITY
+// ══════════════════════════════════════════════════
+function renderCity(){
+  const map=document.getElementById('cityMap');
+  map.innerHTML='';
+  const vis=S.buildings.filter(b=>S.district==='all'||b.bt.district===S.district);
+  const stLabels={new:'Prospect',pitched:'Pitched',building:'Building…',built:'Ready to Close!',client:'Client ✓'};
+  const stCls={new:'st-new',pitched:'st-pitched',building:'st-building',built:'st-built',client:'st-client'};
+  const stCard={new:'',pitched:'',building:'s-building',built:'s-built',client:'s-client'};
+
+  vis.forEach(b=>{
+    const div=document.createElement('div');
+    div.className=`bcard ${stCard[b.status]} ${S.selId===b.id?'sel':''}`;
+    div.style.setProperty('--glow',b.bt.color);
+    div.onclick=()=>selectB(b.id);
+    const pitchPct=Math.min(100,b.pitchCount/3*100);
+    div.innerHTML=`
+      <span class="bicon">${b.bt.icon}</span>
+      <div class="bname">${b.name}</div>
+      <div class="btype">${b.bt.name} · ${b.loc}</div>
+      <span class="bstatus ${stCls[b.status]}">${stLabels[b.status]}</span>
+      ${b.status==='building'?`<div class="build-days">⏳ ${b.buildDaysLeft} day${b.buildDaysLeft!==1?'s':''} left</div>`:''}
+      ${b.status==='client'&&b.isRetainer?`<div class="brev">₹${fmt(b.monthlyRev)}/mo ↻</div>`:''}
+      ${b.status==='client'&&!b.isRetainer?`<div class="brev">Paid ₹${fmt(b.totalEarned)}</div>`:''}
+      ${b.status==='built'?`<div class="brev" style="color:var(--purple)">⭐ Close now!</div>`:''}
+      ${b.pitchCount>0&&b.status!=='client'&&b.status!=='built'?`<div class="pitch-track"><div class="pitch-fill" style="width:${pitchPct}%;background:${b.bt.color}"></div></div>`:''}
+    `;
+    map.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  SELECT BUILDING
+// ══════════════════════════════════════════════════
+function selectB(id){
+  S.selId=id;
+  const b=S.buildings[id];
+  S.selPkg=b.pkg||b.bt.bestPkg;
+  renderCity();
+  renderPanel();
+}
+
+// ══════════════════════════════════════════════════
+//  RENDER RIGHT PANEL
+// ══════════════════════════════════════════════════
+function renderPanel(){
+  const el=document.getElementById('rpinner');
+  if(S.selId===null){
+    el.innerHTML=`<div class="empty-state"><span class="ei">🏙️</span><div style="font-size:.92rem;margin-bottom:8px;color:var(--text)">Click a building to start</div><div style="font-size:.75rem">Pitch → Build → Close → Profit</div></div>`;
+    return;
+  }
+  const b=S.buildings[S.selId];
+  const bt=b.bt;
+  const pkg=PKG[S.selPkg]||PKG[bt.bestPkg];
+  const closePct=Math.min(98,Math.round(b.closeChance*100));
+  const canBuild=b.status==='pitched'&&S.credits>=pkg.credits;
+
+  let pkgHtml=Object.values(PKG).map(p=>`
+    <div class="pkg-card ${S.selPkg===p.id?'sel-pkg':''}" onclick="selPkg('${p.id}')">
+      <div style="display:flex;justify-content:space-between">
+        <span class="pkg-name">${p.icon} ${p.name}</span>
+        ${p.id===bt.bestPkg?`<span class="best-tag">⭐ Best fit</span>`:''}
+      </div>
+      <div class="pkg-prices">
+        <span class="pkg-once">₹${fmt(p.oneTime)}</span>
+        <span class="pkg-mo">or ₹${fmt(p.monthly)}/mo</span>
+      </div>
+      <div class="pkg-cr">⚡ ${p.credits} credits · ${p.days} days build</div>
+      <ul class="pkg-feats">${p.feats.map(f=>`<li>${f}</li>`).join('')}</ul>
+    </div>
+  `).join('');
+
+  let actHtml='';
+  if(b.status==='new'||b.status==='pitched'){
+    const maxPitched=b.pitchCount>=3;
+    actHtml=`
+      <button class="abtn btn-p" onclick="doPitch()" ${maxPitched?'disabled':''}>
+        <span>📣 Send Pitch ${maxPitched?'(maxed)':'('+b.pitchCount+'/3)'}</span>
+        <span class="acost">Free · +${Math.round(bt.boost*100)}% close rate</span>
+      </button>
+      <button class="abtn btn-b" onclick="doBuild()" ${!canBuild?'disabled':''}>
+        <span>🔨 Build Website</span>
+        <span class="acost">-${pkg.credits} cr · ${pkg.days} days${b.status==='new'?' (pitch first)':S.credits<pkg.credits?' (low credits)':''}</span>
+      </button>`;
+  } else if(b.status==='building'){
+    actHtml=`<div class="building-msg">⏳ Building your site…<br><br>${b.buildDaysLeft} day${b.buildDaysLeft!==1?'s':''} remaining<br><span style="font-size:.72rem;color:var(--muted)">Click "Next Day" to advance time</span></div>`;
+  } else if(b.status==='built'){
+    actHtml=`
+      <div style="background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.25);border-radius:8px;padding:10px;margin-bottom:4px;font-size:.78rem;color:var(--purple)">
+        ✅ Website ready! Choose how to close:
+      </div>
+      <button class="abtn btn-c" onclick="doClose(false)">
+        <span>🤝 One-Time Payment</span>
+        <span class="acost">₹${fmt(PKG[b.pkg].oneTime)} · ${closePct}% chance</span>
+      </button>
+      <button class="abtn btn-r" onclick="doClose(true)">
+        <span>📅 Monthly Retainer</span>
+        <span class="acost">₹${fmt(PKG[b.pkg].monthly)}/mo · ${closePct}% chance</span>
+      </button>`;
+  } else if(b.status==='client'&&!b.isRetainer){
+    actHtml=`<button class="abtn btn-r" onclick="upgradeRetainer()">
+      <span>📅 Upgrade to Retainer</span>
+      <span class="acost">+₹${fmt(PKG[b.pkg].monthly)}/mo recurring</span>
+    </button>`;
+  }
+
+  el.innerHTML=`
+    <div class="chdr">
+      <div class="cbig">${bt.icon}</div>
+      <div class="cinfo">
+        <h2>${b.name}</h2>
+        <p>${bt.name} · ${b.loc}<br>🎯 ${bt.pain}</p>
+        <div class="budget">💰 Budget: ${bt.budget}</div>
+      </div>
+    </div>
+
+    ${b.status==='client'?`
+      <div class="client-box">
+        <div class="ct">✅ Active ${b.isRetainer?'Retainer':'Client'}</div>
+        <div class="cs">
+          Package: ${PKG[b.pkg].name}<br>
+          ${b.isRetainer?`Monthly revenue: <strong style="color:var(--green)">₹${fmt(b.monthlyRev)}/mo</strong>`:''}
+          Total earned: <strong style="color:var(--green)">₹${fmt(b.totalEarned)}</strong>
+        </div>
+      </div>
+    `:pkgHtml+`
+      <div class="pbar-wrap">
+        <div class="lbl">
+          <span>Close probability</span>
+          <span style="color:var(--green)">${closePct}%</span>
+        </div>
+        <div class="pbar"><div class="pbar-fill" style="width:${closePct}%"></div></div>
+        <div style="font-size:.65rem;color:var(--muted);margin-top:3px">
+          ${b.pitchCount===0?'👆 Pitch first to boost close rate':b.pitchCount<3?`Pitch ${3-b.pitchCount} more time${3-b.pitchCount!==1?'s':''} to max it out`:'🔥 Fully warmed up!'}
+        </div>
+      </div>
+    `}
+
+    <div class="act-btns">${actHtml}</div>
+  `;
+}
+
+function selPkg(id){S.selPkg=id;renderPanel()}
+
+// ══════════════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════════════
+function doPitch(){
+  if(S.selId===null)return;
+  const b=S.buildings[S.selId];
+  if(b.pitchCount>=3)return;
+  b.pitchCount++;
+  b.status='pitched';
+  b.closeChance=Math.min(0.96,b.closeChance+b.bt.boost);
+  addLog(`📣 Pitched ${b.name} (${b.pitchCount}/3) — close rate now ${Math.round(b.closeChance*100)}%`,'inf');
+  float(`+${Math.round(b.bt.boost*100)}% close rate`,'var(--orange)');
+  renderCity();renderPanel();
+}
+
+function doBuild(){
+  if(S.selId===null)return;
+  const b=S.buildings[S.selId];
+  const pkg=PKG[S.selPkg];
+  if(!pkg||b.status!=='pitched'||S.credits<pkg.credits)return;
+  S.credits-=pkg.credits;
+  S.creditsUsed+=pkg.credits;
+  b.status='building';
+  b.pkg=S.selPkg;
+  b.buildDaysLeft=pkg.days;
+  addLog(`🔨 Building ${pkg.name} for ${b.name} (-${pkg.credits} credits, ${pkg.days} days)`,'inf');
+  float(`-${pkg.credits} credits`,'var(--blue)');
+  updateStats();renderCity();renderPanel();
+}
+
+function doClose(retainer){
+  if(S.selId===null)return;
+  const b=S.buildings[S.selId];
+  if(b.status!=='built')return;
+  const pkg=PKG[b.pkg];
+  const success=Math.random()<b.closeChance;
+  if(success){
+    b.status='client';
+    b.isRetainer=retainer;
+    S.clientsClosed++;
+    if(retainer){
+      b.monthlyRev=pkg.monthly;
+      S.mrr+=pkg.monthly;
+      addLog(`🎉 ${b.name} signed retainer! +₹${fmt(pkg.monthly)}/mo MRR`,'ok');
+      showModal('🎉','Retainer Signed!',`${b.name} will pay you ₹${fmt(pkg.monthly)} every month!`,`+₹${fmt(pkg.monthly)}/mo`);
+      float(`+₹${fmt(pkg.monthly)}/mo MRR`,'var(--purple)');
+    } else {
+      S.revenue+=pkg.oneTime;
+      b.totalEarned+=pkg.oneTime;
+      addLog(`💰 Closed ${b.name}! +₹${fmt(pkg.oneTime)} paid!`,'ok');
+      showModal('💰','Deal Closed!',`${b.name} just paid you in full!`,`+₹${fmt(pkg.oneTime)}`);
+      float(`+₹${fmt(pkg.oneTime)}`,'var(--green)');
+    }
+    updateStats();checkWin();
+  } else {
+    addLog(`😓 ${b.name} said not now. Pitch more and try again — website is still ready!`,'wrn');
+    showModal('😓','Not Yet…',`${b.name} wasn't ready this time. Your site is still built — pitch once more and close!`,'Try again');
+  }
+  renderCity();renderPanel();
+}
+
+function upgradeRetainer(){
+  if(S.selId===null)return;
+  const b=S.buildings[S.selId];
+  if(b.status!=='client')return;
+  const pkg=PKG[b.pkg];
+  b.isRetainer=true;
+  b.monthlyRev=pkg.monthly;
+  S.mrr+=pkg.monthly;
+  addLog(`📅 ${b.name} upgraded to retainer! +₹${fmt(pkg.monthly)}/mo`,'ok');
+  float(`+₹${fmt(pkg.monthly)}/mo`,'var(--purple)');
+  renderCity();renderPanel();updateStats();
+}
+
+// ══════════════════════════════════════════════════
+//  TIME
+// ══════════════════════════════════════════════════
+function nextDay(){
+  S.day++;S.totalDays++;
+  if(S.day>7){S.day=1;S.week++;}
+  if(S.week%4===1&&S.day===1&&S.totalDays>1)monthlyReset();
+
+  // Advance building countdown
+  S.buildings.forEach(b=>{
+    if(b.status==='building'){
+      b.buildDaysLeft--;
+      if(b.buildDaysLeft<=0){
+        b.status='built';
+        addLog(`✅ ${b.name}'s website is ready — go close the deal!`,'ok');
+      }
+    }
+  });
+
+  // Random event (15% chance)
+  if(Math.random()<0.15)randomEvent();
+
+  document.getElementById('wkNum').textContent=S.week;
+  document.getElementById('dyNum').textContent=S.day;
+
+  // Refresh selected building reference
+  if(S.selId!==null){}
+  renderCity();renderPanel();updateStats();
+}
+
+function monthlyReset(){
+  S.credits=S.maxCredits;
+  let paid=0;
+  S.buildings.forEach(b=>{
+    if(b.isRetainer&&b.monthlyRev>0){
+      S.revenue+=b.monthlyRev;S.mrrPaid+=b.monthlyRev;
+      b.totalEarned+=b.monthlyRev;paid+=b.monthlyRev;
+    }
+  });
+  const banner=document.getElementById('mBanner');
+  banner.textContent=`🔄 New Month! Credits reset to 200${paid?` · ₹${fmt(paid)} MRR paid!`:''}`;
+  banner.classList.add('on');
+  setTimeout(()=>banner.classList.remove('on'),4000);
+  if(paid){addLog(`💳 Monthly retainers collected: +₹${fmt(paid)}`,'ok');float(`+₹${fmt(paid)} MRR!`,'var(--purple)');}
+  addLog('🔄 Month reset — Lovable credits restored to 200','inf');
+  updateStats();checkWin();
+}
+
+function randomEvent(){
+  const events=[
+    {msg:'📣 A school principal saw your VMHSS case study and is interested!',fn(){
+      const b=S.buildings.find(b=>b.type==='school'&&b.status==='new');
+      if(b){b.pitchCount=1;b.status='pitched';b.closeChance=Math.min(.96,b.closeChance+b.bt.boost);}
+    }},
+    {msg:'🔥 AI website demand surging — all healthcare close rates boosted!',fn(){
+      S.buildings.filter(b=>b.bt.district==='healthcare').forEach(b=>b.closeChance=Math.min(.96,b.closeChance+.05));
+    }},
+    {msg:'🎓 LinkedIn post viral! 2 prospects warmed themselves up.',fn(){
+      S.buildings.filter(b=>b.status==='new').slice(0,2).forEach(b=>{b.pitchCount=1;b.status='pitched';});
+    }},
+    {msg:'💬 Referral! An existing pitch is now 10% easier to close.',fn(){
+      const b=S.buildings.find(b=>b.status==='pitched');
+      if(b)b.closeChance=Math.min(.96,b.closeChance+.10);
+    }},
+    {msg:'😬 A competitor launched in your city — act fast on warm leads!',fn(){}},
+    {msg:'💸 Client upsell opportunity! One client wants to upgrade package.',fn(){
+      const b=S.buildings.find(b=>b.status==='client'&&b.pkg==='starter');
+      if(b){b.pkg='professional';S.revenue+=15000;b.totalEarned+=15000;addLog(`🆙 ${b.name} upgraded to Professional! +₹15,000`,'ok');}
+    }},
+  ];
+  const ev=events[Math.floor(Math.random()*events.length)];
+  ev.fn();
+  addLog(ev.msg,'wrn');
+}
+
+// ══════════════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════════════
+function fmt(n){return n.toLocaleString('en-IN')}
+
+function updateStats(){
+  const pct=Math.min(100,(S.revenue/100000)*100);
+  document.getElementById('tRevenue').textContent=`₹${fmt(S.revenue)}`;
+  document.getElementById('tMRR').textContent=`₹${fmt(S.mrr)}`;
+  document.getElementById('tClients').textContent=S.clientsClosed;
+  document.getElementById('goalFill').style.width=pct+'%';
+  document.getElementById('goalPct').textContent=Math.round(pct)+'%';
+  document.getElementById('credNum').textContent=S.credits;
+  document.getElementById('credFill').style.width=(S.credits/S.maxCredits*100)+'%';
+}
+
+function updateCounts(){
+  document.getElementById('c-all').textContent=S.buildings.length;
+  ['education','healthcare','business','food'].forEach(d=>{
+    document.getElementById('c-'+d).textContent=S.buildings.filter(b=>b.bt.district===d).length;
+  });
+}
+
+function setDistrict(d){
+  S.district=d;
+  document.querySelectorAll('.dist-btn').forEach(el=>el.classList.remove('on'));
+  document.getElementById('dist-'+d).classList.add('on');
+  renderCity();
+}
+
+function addLog(msg,type){
+  const log=document.getElementById('logBar');
+  const el=document.createElement('div');
+  el.className='loge '+type;
+  el.textContent=msg;
+  log.insertBefore(el,log.firstChild);
+  const all=log.querySelectorAll('.loge');
+  if(all.length>25)all[all.length-1].remove();
+}
+
+function float(txt,color){
+  const el=document.createElement('div');
+  el.className='ft';el.style.color=color;
+  el.style.left=(window.innerWidth/2-50)+'px';
+  el.style.top='80px';el.textContent=txt;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1500);
+}
+
+function showModal(icon,title,desc,rev){
+  document.getElementById('mIcon').textContent=icon;
+  document.getElementById('mTitle').textContent=title;
+  document.getElementById('mDesc').textContent=desc;
+  document.getElementById('mRev').textContent=rev;
+  document.getElementById('resultModal').classList.add('on');
+}
+function closeModal(){document.getElementById('resultModal').classList.remove('on')}
+
+function checkWin(){
+  if(!S.won&&S.revenue>=100000){
+    S.won=true;
+    document.getElementById('wRev').textContent='₹'+fmt(S.revenue);
+    document.getElementById('wCl').textContent=S.clientsClosed;
+    document.getElementById('wDy').textContent=S.totalDays;
+    document.getElementById('wCr').textContent=S.creditsUsed;
+    document.getElementById('wMrr').textContent='₹'+fmt(S.mrr)+'/mo';
+    setTimeout(()=>document.getElementById('winScreen').classList.add('on'),900);
+  }
+}
+</script>
+</body>
+</html>
