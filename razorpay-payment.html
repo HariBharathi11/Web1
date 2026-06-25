@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Razorpay Payment</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;--panel:#0f1623;--card:#151e2e;--border:#1e2d45;
+  --green:#00ff9f;--blue:#38bdf8;--purple:#a78bfa;--orange:#fb923c;
+  --red:#f87171;--yellow:#fbbf24;--text:#cbd5e1;--muted:#475569;
+}
+html,body{
+  min-height:100%;font-family:'Courier New',monospace;
+  background:var(--bg);color:var(--text);
+}
+
+/* ── layout ── */
+.page{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:24px;
+}
+.card{
+  width:100%;max-width:480px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:32px;
+}
+
+/* ── header ── */
+.card-header{text-align:center;margin-bottom:28px}
+.card-header .logo{
+  font-size:1.5rem;font-weight:bold;
+  color:var(--green);text-shadow:0 0 14px var(--green);
+  letter-spacing:1px;
+}
+.card-header p{color:var(--muted);font-size:0.82rem;margin-top:6px}
+
+/* ── form ── */
+.field{margin-bottom:18px}
+label{
+  display:block;font-size:0.78rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;
+}
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="password"]{
+  width:100%;background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;padding:10px 14px;color:var(--text);font-family:inherit;
+  font-size:0.9rem;outline:none;transition:border-color .15s;
+}
+input:focus{border-color:var(--green)}
+input::placeholder{color:var(--muted)}
+
+/* amount row */
+.amount-row{display:flex;align-items:center;gap:0}
+.currency-badge{
+  background:var(--panel);border:1px solid var(--border);border-right:none;
+  border-radius:6px 0 0 6px;padding:10px 12px;color:var(--muted);font-size:0.9rem;
+}
+.amount-row input{border-radius:0 6px 6px 0;flex:1}
+
+/* key row */
+.key-toggle{
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:0.75rem;text-decoration:underline;margin-top:4px;
+  font-family:inherit;
+}
+
+/* divider */
+.divider{
+  border:none;border-top:1px solid var(--border);margin:20px 0;
+}
+
+/* pay button */
+#pay-btn{
+  width:100%;padding:14px;margin-top:8px;
+  background:var(--green);color:#07090f;
+  border:none;border-radius:8px;font-family:inherit;
+  font-size:1rem;font-weight:bold;letter-spacing:.5px;
+  cursor:pointer;transition:opacity .15s,box-shadow .15s;
+  box-shadow:0 0 20px color-mix(in srgb,var(--green) 30%,transparent);
+}
+#pay-btn:hover:not(:disabled){opacity:.9;box-shadow:0 0 28px color-mix(in srgb,var(--green) 45%,transparent)}
+#pay-btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* status */
+.status-msg{
+  min-height:20px;margin-top:14px;text-align:center;
+  font-size:0.82rem;border-radius:6px;padding:0;transition:all .2s;
+}
+.status-msg:not(:empty){padding:10px 14px}
+.status-loading{color:var(--blue);border:1px solid color-mix(in srgb,var(--blue) 30%,transparent)}
+.status-success{color:var(--green);border:1px solid color-mix(in srgb,var(--green) 30%,transparent);background:color-mix(in srgb,var(--green) 8%,transparent)}
+.status-failed {color:var(--red); border:1px solid color-mix(in srgb,var(--red)  30%,transparent);background:color-mix(in srgb,var(--red)  8%,transparent)}
+
+/* footer note */
+.footer-note{
+  text-align:center;margin-top:20px;font-size:0.75rem;color:var(--muted);
+}
+.footer-note a{color:var(--blue);text-decoration:none}
+.footer-note a:hover{text-decoration:underline}
+
+/* ── test mode banner ── */
+.test-banner{
+  width:100%;max-width:480px;margin-bottom:12px;
+  background:color-mix(in srgb,var(--yellow) 10%,transparent);
+  border:1px solid color-mix(in srgb,var(--yellow) 30%,transparent);
+  border-radius:8px;padding:8px 16px;font-size:0.78rem;
+  color:var(--yellow);text-align:center;
+}
+
+/* loading spinner inside button */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{
+  display:inline-block;width:14px;height:14px;
+  border:2px solid #07090f;border-top-color:transparent;
+  border-radius:50%;animation:spin .6s linear infinite;
+  vertical-align:middle;margin-right:6px;
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="test-banner">
+    Test mode — use card <strong>4111 1111 1111 1111</strong>, any future expiry &amp; CVV
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="logo">&#9632; PAY</div>
+      <p>Secure checkout powered by Razorpay</p>
+    </div>
+
+    <form id="payment-form" novalidate>
+
+      <!-- hidden: key id (set from your config / env) -->
+      <input type="hidden" id="rzp-key" value="rzp_test_YOUR_KEY_ID">
+
+      <div class="field">
+        <label for="name">Full name</label>
+        <input id="name" name="name" type="text" placeholder="Hari Bharathi" required>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="you@example.com" required>
+      </div>
+
+      <div class="field">
+        <label for="contact">Phone</label>
+        <input id="contact" name="contact" type="tel" placeholder="+91 98765 43210">
+      </div>
+
+      <hr class="divider">
+
+      <div class="field">
+        <label for="amount">Amount (INR)</label>
+        <div class="amount-row">
+          <span class="currency-badge">&#8377;</span>
+          <input id="amount" name="amount" type="number" min="1" step="0.01"
+                 placeholder="499.00" required>
+        </div>
+      </div>
+
+      <button type="submit" id="pay-btn">Pay Now</button>
+
+      <div id="payment-status" class="status-msg"></div>
+    </form>
+  </div>
+
+  <div class="footer-note">
+    Your payment is encrypted &amp; secured by
+    <a href="https://razorpay.com" target="_blank" rel="noopener">Razorpay</a>
+  </div>
+</div>
+
+<!-- compiled output of razorpay-payment.ts (tsc --outDir dist) -->
+<script src="dist/razorpay-payment.js" type="module"></script>
+
+<!--
+  QUICK START (no bundler):
+  1. npm install -g typescript
+  2. npx tsc razorpay-payment.ts --target ES2017 --module ES2020 --outDir dist --strict
+  3. Replace "rzp_test_YOUR_KEY_ID" with your actual Razorpay key
+  4. Point createOrderEndpoint / verifyPaymentEndpoint to your backend
+
+  Backend must:
+    POST /api/orders        → call Razorpay Orders API, return { id, amount, currency, ... }
+    POST /api/verify-payment → verify HMAC signature with your key_secret
+-->
+</script>
+</body>
+</html>
