@@ -1,59 +1,60 @@
-# MinMaxHR LinkedIn Lead Engine
+# MinMaxHR Revenue Engine
 
-Finds HR decision-makers on LinkedIn, validates that their company is actually hiring, scores them against the MinMaxHR ICP rubric, writes everything to a Google Sheet, and **drafts** outreach messages.
+An account-based LinkedIn pipeline for MinMaxHR: sources leads warm-network-first, maps companies to the ICP people inside them, validates that they are actually hiring, scores every account on **Fit × Access × Timing**, renders the pipeline to Google Sheets, and **drafts** outreach.
 
-> **It never sends anything.** There is no send path in this codebase. `outreach.draftOnly` must be `true` or the run aborts. Sending is a human action taken in the LinkedIn UI by someone who has read the draft.
+> **It never sends anything.** There is no send path in this codebase — a test asserts that structurally. `outreach.draftOnly` must be `true` or the run aborts. Sending is a human action, taken in the LinkedIn UI, by someone who has read the draft.
 
-Read **[SOP.md](./SOP.md)** before the first run — it holds the ICP definition, the detection-avoidance rules, the warm-up schedule, and the daily procedure. This file is setup only.
+Read **[SOP.md](./SOP.md)** before the first run. This file is setup only.
 
 ---
+
+## Start here — the five-minute move that matters most
+
+Before installing anything:
+
+> LinkedIn → **Settings & Privacy → Data Privacy → Get a copy of your data → Connections → Request archive**
+
+Save the CSV to `leadgen/input/Connections.csv`. That single download is worth more than everything else in this repository: ~2,000 first-degree contacts, no automation, no rate limit, no detection surface. See SOP §1.
 
 ## Install
 
 ```bash
 cd leadgen
 npm install
-npx playwright install chromium     # skip if PLAYWRIGHT_BROWSERS_PATH is already set
+npx playwright install chromium    # skip if PLAYWRIGHT_BROWSERS_PATH is set
 ```
 
-Requires Node 18+ and a desktop session — the browser runs **headed** on purpose (see SOP §3.6).
+Node **22.5+** (uses the built-in `node:sqlite` — no native modules to compile). Lane C runs a **headed** browser on purpose, so it needs a desktop session; Lanes A and B do not.
 
-## First run
+## Run
 
 ```bash
-node src/index.js --profile=default --dry-run
+npm run daily      # warm → enrich → score → draft → sync   ← the everyday command
 ```
 
-A Chromium window opens. **Log in by hand**, including any 2FA. The script waits, never types your password, and never stores it. The profile keeps the cookie in `.state/profiles/default/`, so every run after this is non-interactive.
+Or one lane at a time:
 
-`--dry-run` writes to `output/*.json` instead of Sheets — use it until the leads look right.
+| Command | Touches LinkedIn? | What it does |
+|---|---|---|
+| `npm run warm` | **No** | Imports Connections.csv → companies + people |
+| `npm run enrich` | **No** | Company websites: domain, region, careers page, openings, ATS, socials |
+| `npm run score` | No | Re-scores every account through the Venn |
+| `npm run draft` | No | Builds drafts, schedules touch sequences |
+| `npm run cold` | **Yes** | Cold search — the risky lane. 10 profiles/day, optional |
+| `npm run sync` | No | Renders the pipeline to Google Sheets |
+| `npm test` | No | 35 tests |
 
-### Flags
+Flags: `--profile=<name>` (one per LinkedIn account) · `--dry-run` (skip Sheets) · `--limit=<n>` · `--force` (override the governor — read SOP §5.2 first).
 
-| Flag | Effect |
-|---|---|
-| `--profile=<name>` | Which browser identity to use. One per LinkedIn account. |
-| `--dry-run` | Skip Sheets; write local JSON only. |
-| `--no-careers` | Skip careers-page validation (faster; scores lose the volume signal). |
-| `--force` | Override the pacing governor. Read SOP §3.2 before using it. |
+**First `npm run cold`:** a Chromium window opens. Log in by hand, including 2FA. The script waits, never types your password, never stores it. The profile keeps the cookie in `.state/profiles/<name>/`.
 
 ---
 
 ## Configure
 
-Everything lives in `config.json`. The three you must set:
+Everything is in `config.json`. Already set for you: trial link, sign-off, spreadsheet ID.
 
-```jsonc
-"product": {
-  "trialLink": "https://minmaxhr.com/signup",   // goes into every draft
-  "senderName": "your name"
-},
-"sheets": {
-  "spreadsheetId": "1AbC...xyz"                 // from the Sheet's URL
-}
-```
-
-Then tune to taste: `searches` (ICP queries), `limits` (daily caps — **lower these for a new account**, see SOP §3.3), `scoring` (title regexes and thresholds), `pacing` (delays; `actionDelayMs` is the 2–3s between-actions band).
+Worth tuning: `regions` (multipliers), `venn.weights` and band thresholds, `lanes.*.profileBudget`, `limits` (lower for a new account — SOP §5.5), `scoring.tier1TitleRegex` / `tier2TitleRegex`.
 
 ---
 
@@ -61,84 +62,89 @@ Then tune to taste: `searches` (ICP queries), `limits` (daily caps — **lower t
 
 Service account — no browser consent, works unattended, and revoking a client's access is one line in the share dialog.
 
-**1. Create a project and enable the API**
-- <https://console.cloud.google.com> → new project (e.g. `minmaxhr-leadgen`)
-- APIs & Services → Library → search **Google Sheets API** → **Enable**
+**1. Enable the API**
+<https://console.cloud.google.com> → new project → APIs & Services → Library → **Google Sheets API** → **Enable**
 
 **2. Create a service account**
-- APIs & Services → Credentials → **Create credentials** → **Service account**
-- Name it `leadgen-writer`. Skip the optional role and access steps — permission comes from sharing the Sheet, not from an IAM role.
+Credentials → **Create credentials** → **Service account** → name it `leadgen-writer`. Skip the optional role steps — permission comes from sharing the Sheet, not from IAM.
 
 **3. Download the key**
-- Open the service account → **Keys** → **Add key** → **Create new key** → **JSON**
-- Save it as `leadgen/credentials/service-account.json`
+Open it → **Keys** → **Add key** → **Create new key** → **JSON**
 
 ```bash
 mkdir -p credentials
-mv ~/Downloads/minmaxhr-leadgen-*.json credentials/service-account.json
+mv ~/Downloads/*.json credentials/service-account.json
 ```
 
-`credentials/` and `.state/` are gitignored. Keep it that way — that file is a live credential.
+`credentials/`, `.state/` and `input/` are gitignored. Keep it that way — that file is a live credential and `input/` holds your network.
 
 **4. Share the Sheet with the service account**
-- Create a Google Sheet (tabs are created automatically — don't make them by hand)
-- Copy `client_email` from the JSON (looks like `leadgen-writer@minmaxhr-leadgen.iam.gserviceaccount.com`)
-- In the Sheet: **Share** → paste that address → **Editor** → Share
+Copy `client_email` from the JSON (`leadgen-writer@….iam.gserviceaccount.com`), then in the Sheet: **Share → paste → Editor → Share**.
 
-Skipping this step is the cause of ~90% of "it can't see my sheet" problems. The service account is a separate identity; your own access to the Sheet grants it nothing.
+This is the step people miss. The service account is a separate identity; your own access grants it nothing.
 
-**5. Put the spreadsheet ID in config**
+> **Your sheet is currently shared by link.** That means anyone holding the URL can read — and if it is link-editable, edit — your entire lead database. Restrict it to "Restricted" and share it with the service account instead.
 
-From `https://docs.google.com/spreadsheets/d/`**`1AbC...xyz`**`/edit`, the bold part is the ID → `sheets.spreadsheetId`.
-
-**6. Verify**
+**5. Verify**
 
 ```bash
-node -e "require('./src/sheets').getClient().then(()=>console.log('✔ Sheets auth OK'))"
+node -e "require('./src/render/sheets').getClient().then(()=>console.log('✔ Sheets auth OK'))"
 ```
 
-Alternative: set `GOOGLE_APPLICATION_CREDENTIALS=/abs/path/to/key.json` in `.env` to keep the key outside the repo.
+Alternative: set `GOOGLE_APPLICATION_CREDENTIALS=/abs/path/key.json` in `.env` to keep the key outside the repo.
 
 ---
 
 ## What lands in the Sheet
 
-Three tabs, created and formatted on first write.
+Six tabs, rebuilt from the database on every sync. The DB is the store of record — the sheet can be wiped or reformatted without losing pipeline state.
 
-**Leads** — one row per person, deduped on LinkedIn URL. Re-scraping updates the row in place, so the sheet is a running pipeline, not a snapshot. Includes the full **Scoring Rationale** — every signal that produced the number, including the ones worth zero.
-
-**Message Drafts** — top 10 by score, with `Status` = `DRAFT — review then send by hand` or `WITHHELD`, plus two empty columns (`Sent By Human?`, `Sent On`) for you to fill in after sending. Nothing writes to those columns automatically.
-
-**Run Log** — one row per run: persona, counts, duration, outcome. This is how you spot a run that got throttled.
+| Tab | What it is |
+|---|---|
+| **Accounts** | The scoreboard. Priority, band, fit/access/timing, best route in, blockers, and the written reasoning behind all three axes |
+| **Companies** | Enrichment: domain, region, size, live openings, ATS, careers URL, and social handles |
+| **People** | The contact map — who, what seniority, which company, connection degree |
+| **Message Drafts** | What to send and to whom, plus `Sent By Human?` / `Sent On` — **columns only you ever fill in** |
+| **Daily Actions** | Today's worklist: view → engage → message, ordered by account priority |
+| **Run Log** | One row per run |
 
 ---
 
-## Scoring
+## Scoring — the Venn
 
-| Band | Score | Who |
-|---|---|---|
-| **A — Priority** | 90–100 | CHRO / VP HR at a company with 100+ validated hires/quarter |
-| **B — Qualified** | 75–89 | HR Manager / TA Lead at mid-market with a hiring signal |
-| **C — Not a priority** | <75 | Not contacted |
+```
+priority = fit^0.40 × access^0.35 × timing^0.25      (weighted geometric mean)
+```
 
-Built from four components — seniority (0–55), validated hiring volume (0–30), segment fit (0–10), geography (0–5) — with band guards so the top band can only be reached by a Tier-1 title at a genuinely high-volume employer, and the priority band requires a validated hiring signal. Every score carries its reasoning. Full logic and rationale: `src/score.js`.
+**Geometric, not additive, and that is the whole design.** A zero on any axis zeroes the account: a perfect-fit enterprise you cannot reach scores nothing, and so does a warm first-degree CHRO at a company that is not hiring. An additive score would let two strong axes carry a dead one, and you would spend your 20 daily messages on leads that only look good on one dimension.
+
+Bands: **A ≥ 75** · **B 60–74** · **C < 60** (never contacted).
+
+US and EU **enterprises** are automatically downgraded ×0.45 with a visible `SOC 2 not yet certified` blocker — the buyer's guide is explicit that this is a real non-fit today. In those regions, target staffing agencies instead. Full logic and reasoning: `src/venn.js`.
 
 ---
 
 ## Files
 
 ```
-config.json          all tuning — searches, caps, pacing, scoring, template
-src/index.js         the run: governor → login → search → visit → validate → score → draft → write
-src/humanize.js      behavioural layer — delays, Bézier mouse, scrolling, typing, ordering
-src/session.js       persistent profile, manual login, block detection, usage governor
-src/scrape.js        search + profile extraction (defensive selectors)
-src/careers.js       resolves company → website → careers page → counts live openings
-src/score.js         the ICP rubric, with written reasoning per signal
-src/messages.js      draft builder. DRAFTS ONLY — no send path exists
-src/sheets.js        Google Sheets output, dedupe + in-place update
-.state/              browser profiles + usage counters (gitignored)
-output/              local JSON per run (gitignored)
+config.json              regions, multipliers, lane budgets, caps, pacing, ICP regexes
+src/index.js             lane orchestration
+src/db.js                SQLite store — companies, people, signals, accounts, drafts, touches
+src/venn.js              Fit × Access × Timing, region multipliers, blockers
+src/score.js             person classification (tier1/tier2/tier3)
+src/lanes/warm.js        Connections.csv → pipeline. No automation
+src/enrich/company.js    domain, region, size, socials, careers page
+src/careers.js           counts live openings; detects ATS embeds
+src/signals.js           timing evidence, with sources
+src/playbook.js          20 sales angles (4 segments × 5 situations). Zero LLM calls
+src/messages.js          draft builder. DRAFTS ONLY — no send path exists
+src/sequence.js          view → engage → message scheduler (human-executed)
+src/session.js           persistent profile, manual login, block + CUL + tier detection, governor
+src/scrape.js            cold search extraction
+src/humanize.js          behavioural layer — delays, Bézier mouse, scrolling, typing
+src/render/sheets.js     DB → six-tab Sheet view
+.state/                  pipeline.db + browser profiles + usage counters (gitignored)
+input/                   your Connections.csv (gitignored)
 ```
 
 ---
@@ -147,9 +153,11 @@ output/              local JSON per run (gitignored)
 
 | Symptom | Cause |
 |---|---|
-| `Run blocked by the pacing governor` | Working as designed — outside hours, weekend, cooldown, or daily cap. SOP §3.2. |
-| `BLOCKED: …` mid-run | LinkedIn flagged the session. **Stop for the day** and follow SOP §3.4. |
-| 0 cards harvested | LinkedIn changed its DOM. Fix `extractResultCards` in `src/scrape.js` — it's anchored to `/in/` links, so it degrades rather than crashing. |
-| Many drafts `WITHHELD` | Careers validation isn't resolving websites. Check the `Website` and `Careers URL` columns. Working as designed — better withheld than wrong. |
-| `service-account key not found` | Step 3 above. |
-| Sheets 403 | Step 4 above — share the Sheet with `client_email`. |
+| `No connections export at …` | Do the export in "Start here" above. |
+| Everything scores Band C with timing 0 | Enrichment has not run yet. `npm run enrich` then `npm run score`. Working as designed — the Venn will not promote an account whose hiring is unverified. |
+| `Run blocked by the pacing governor` | Lane C only, working as designed. Lanes A and B are unaffected — keep going. |
+| `Commercial Use Limit reached` | A monthly search quota, not a restriction. Account is fine. Work the warm lane; it does not consume the quota. |
+| `BLOCKED: …` | Stop for the day, follow SOP §5.6. |
+| Many drafts `WITHHELD` | Enrichment could not verify a volume claim. Working as designed — better withheld than wrong. Check the Companies tab. |
+| Sheets 403 | Share the Sheet with the service account's `client_email`. |
+| 0 cards in cold lane | LinkedIn changed its DOM. Fix `extractResultCards` in `src/scrape.js` — it is anchored to `/in/` links so it degrades rather than crashing. |

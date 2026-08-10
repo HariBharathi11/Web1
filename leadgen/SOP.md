@@ -1,191 +1,259 @@
-# Standard Operating Procedure — MinMaxHR LinkedIn Lead Engine
+# Standard Operating Procedure — MinMaxHR Revenue Engine
 
 **Objective:** 20 paying MinMaxHR clients.
 **Absolute rule:** this system drafts messages. It never sends one. Sending is a human action.
 
 ---
 
-## 1. The maths behind "20 paying clients"
+## 1. The one thing to understand first
 
-Work backwards, because it changes how many leads you actually need.
+Your ~2,000 first-degree connections are the asset. Everything else in this document is secondary.
 
-| Stage | Rate | Volume needed |
+LinkedIn will hand you that entire network as a CSV, officially, in about five minutes:
+
+> **Settings & Privacy → Data Privacy → Get a copy of your data → Connections → Request archive**
+
+Name, company, position, connected-on date, for every connection you have. **Zero bot detection surface. Zero rate limit. Zero terms-of-service exposure.** No automation is involved, because none is needed.
+
+Compare the two sourcing routes honestly:
+
+| | Warm export | Cold search |
 |---|---|---|
-| Paying clients | — | **20** |
-| Free-tier trials that convert | 25% | 80 trials |
-| Replies that start a trial | 40% | 200 replies |
-| Messages sent that get a reply | 12% | ~1,650 sends |
-| Band A/B leads worth messaging | 45% of scored | ~3,700 leads scored |
+| Leads available | ~2,000, immediately | ~10/day, at risk |
+| Reply rate | ~30% | ~12% |
+| Account risk | none | real |
+| Cost to acquire | one download | the whole governor apparatus |
 
-Those rates are planning assumptions, not measured facts — replace each one with your own number after the first 200 sends. The point of the table is the shape: **you need roughly 3,500–4,000 scored leads, not 200.** At the safe rate this system runs (20 profiles/run, 2 runs/day, 5 days/week), that is ~200 leads a week, so **roughly 18–20 weeks on one account.**
-
-Three ways to compress it, in order of how much I'd trust them:
-
-1. **Run several profiles.** Each client or teammate who logs in their own account is a separate `--profile`, each with its own independent budget. Four accounts ≈ 5 weeks instead of 20.
-2. **Raise conversion, not volume.** Moving reply rate from 12% to 20% removes 650 sends. The free-tier offer in the buyer's guide is the strongest lever here — it is genuinely free, and the retrospective test ("rank a role you already filled, compare to who you actually chose") is a better hook than any subject line.
-3. **Widen the top of the funnel off LinkedIn.** Job boards, company careers pages, and funding announcements all identify high-volume hirers without touching LinkedIn at all. That is the roadmap item in §7.
-
-Do not compress it by raising the daily caps. That trades a 20-week campaign for a restricted account and a 0-week campaign.
+This is why the cold scraper — the thing that was the entire product in v1 — is now the third and smallest lane. Run the export on day one, before anything else.
 
 ---
 
-## 2. ICP definition
+## 2. The maths — what 20 clients actually requires
 
-### Tier 1 — score 90–100. Draft first.
-- **Titles:** CHRO, Chief People Officer, VP HR, Head of HR / People / Talent
-- **Company:** 100+ validated hires per quarter (≈40+ live openings on the careers page)
-- **Geography:** India — matches Mumbai data residency and ₹ pricing
-- **Why they buy:** they own the hiring KPI. Time-to-shortlist is on their board slide.
-- **Lead with:** defensibility and the audit trail. This buyer has been asked "why was this candidate dropped?" and had no answer.
+| Stage | Warm (Lane A) | Cold (Lane C) |
+|---|---|---|
+| Sourced | 2,000 connections | — |
+| ICP-relevant after classification | ~500 people / ~300 companies | — |
+| Band A+B after the Venn | ~200 | ~150 over 10 weeks |
+| Reply rate | 30% | 12% |
+| Replies | 60 | 18 |
+| Trial starts (40% of replies) | 24 | 7 |
+| **Paid (25% of trials)** | **~15** | **~5** |
 
-### Tier 2 — score 75–89. Draft second.
-- **Titles:** HR Manager, TA Lead, Recruitment Manager, Head of Talent, People Ops Lead
-- **Company:** mid-market with a real hiring signal (8+ live openings, or an ATS in place)
-- **Why they buy:** they personally read the resume pile. This is their weekend back.
-- **Lead with:** recruiter hours. 40+ hours a month per recruiter reading documents.
+**≈20 paying clients in 10–12 weeks**, with the warm network carrying three quarters of it.
 
-### Highest-fit segment of all — staffing / RPO / recruitment agencies
-Scored with a +10 bonus, and worth pursuing ahead of headcount-matched enterprises. They win or lose mandates on shortlist speed, so screening time is **revenue**, not overhead. They also buy faster, because there is no internal-tooling committee.
+Those percentages are planning assumptions, not measured facts — replace each with your own number after the first 200 sends, and update this table. The shape is what matters: **the binding constraint is your own sending capacity (15–20 thoughtful messages a day), not how many leads we can safely scrape.** That is the right constraint to be held by, because it carries no account risk at all.
 
-### Explicitly not a fit — do not draft, even at a high score
-- Teams who want an ATS (MinMaxHR is not one, and pretending otherwise loses the second call)
-- Anyone who wants humans removed from hiring (deliberately not built)
-- Anyone needing a sourcing agency (this ranks applicants you already have)
-- Procurement with a hard SOC 2 gate today (controls exist, certificate does not)
-
-Naming the poor fit up front is the same posture the buyer's guide takes, and it is why that document is credible. Keep the outreach consistent with it.
+Do not try to compress this by raising the daily caps. That trades a 12-week campaign for a restricted account and a 0-week campaign.
 
 ---
 
-## 3. Detection avoidance — the actual operating rules
+## 3. The Venn — where outreach capacity goes
 
-Understand what is being detected. It is not "a browser" — it is a **rhythm**. Platforms score sessions on the *distribution* of behaviour over time: gap variance between actions, scroll direction changes, idle periods, session length, day-over-day consistency, and volume relative to your account's own history. Nothing here defeats detection by disguise. It works by not producing an inhuman pattern in the first place.
+Three axes, scored independently, combined as a **weighted geometric mean**:
 
-### 3.1 What is built in (automatic)
+```
+priority = fit^0.40 × access^0.35 × timing^0.25
+```
+
+| Axis | Question | Driven by |
+|---|---|---|
+| **Fit** | Is this company worth selling to? | Segment, validated hiring volume, ICP contacts mapped, × region multiplier |
+| **Access** | Can we reach someone who can say yes? | Connection degree, seniority, engagement, number of routes in |
+| **Timing** | Is the pain live *now*? | Live openings, ATS, funding, new HR leader, recent posts |
+
+**Geometric, not additive, and that is the entire point.** A zero on any axis zeroes the account:
+
+- A perfect-fit enterprise you have no route into → **dead**
+- A warm first-degree CHRO at a company that is not hiring → **dead**
+- A hiring company you neither fit nor can reach → **dead**
+
+An additive score would let two strong axes carry a dead one, and you would spend your 20 daily messages on leads that only look good on one dimension. Only the intersection survives.
+
+**Bands:** A ≥ 75 (draft now) · B 60–74 (draft second) · C < 60 (never contacted).
+
+### Region multipliers
+
+| Region | ×  | Note |
+|---|---|---|
+| India | 1.0 | Baseline. High volume, fast cycles, ₹9,999 Growth plan. |
+| Gulf | 1.6 | Large staffing sector, budget, English-first. |
+| Singapore | 1.5 | Regional HQs, enterprise budgets. |
+| Europe | 1.3 | Higher value; GDPR review adds a step. |
+| USA | 1.8 | Highest value — **but see below.** |
+
+**US and EU enterprises are automatically downgraded ×0.45** and carry a visible `SOC 2 not yet certified` blocker. Your own buyer's guide says a hard SOC 2 gate is a genuine non-fit today. Pitching into that gate wastes the send and, worse, the credibility of a document whose whole strength is that it names its own poor fit. **In the US and EU, target staffing agencies, not enterprises.**
+
+---
+
+## 4. ICP definition
+
+### Highest priority — staffing / RPO / recruitment agencies (any region)
+Scored +40 on Fit, ahead of headcount-matched enterprises. For them shortlist speed is **revenue**, not overhead — they win or lose mandates on it. No internal-tooling committee, so they decide in days rather than quarters.
+**Lead with:** submittal speed and defensibility when a client challenges a shortlist.
+
+### Tier 1 contacts (score 90–100 on the old rubric, `tier1` here)
+CHRO, CPO, VP HR, Head of HR/People/Talent — **and, at agencies, the Founder or MD**, because at a 20-person staffing firm the founder *is* the buyer and classifying them as "not HR" loses the best segment entirely.
+**Lead with:** defensibility and the audit trail. This buyer has been asked "why was this candidate dropped?" and had no answer.
+
+### Tier 2 contacts
+HR Manager, TA Lead, Recruitment Manager, HRBP, People Ops Lead. They personally read the pile.
+**Lead with:** recruiter hours — 40+ a month per recruiter reading documents.
+
+### Explicitly not a fit — do not draft, whatever the score
+- Teams who want an ATS (MinMaxHR is not one; pretending otherwise loses the second call)
+- Anyone wanting humans removed from hiring (deliberately not built)
+- Anyone wanting a sourcing agency (this ranks applicants you already have)
+- Procurement with a hard SOC 2 gate today
+
+---
+
+## 5. Detection avoidance
+
+Understand what is actually being detected. It is not "a browser" — it is a **rhythm**. Platforms score sessions on the *distribution* of behaviour over time: gap variance, scroll direction changes, idle periods, session length, day-over-day consistency, and volume relative to your own history. Nothing here defeats detection by disguise. It works by not producing an inhuman pattern in the first place.
+
+**The strongest control is architectural: Lanes A and B do not touch LinkedIn search at all.** The warm export is a file download. Enrichment runs against public company websites from a separate cookie-less browser. Only Lane C — 10 profiles a day — touches LinkedIn, and it is optional.
+
+### 5.1 Built in, automatic (Lane C only)
 
 | Behaviour | Why |
 |---|---|
 | **Real headed Chromium, persistent profile** | Headless is trivially fingerprinted. A real profile with real cookies has nothing to disguise. |
-| **Manual login, once, by hand** | Scripted logins are the single most-flagged event. Password is never typed or stored by the script. |
-| **Log-normal delays, not uniform** | A flat `random(2000,3000)` is *itself* a signature — real gaps cluster with a long tail. Delays sit in the 2–3s band with a 7% chance of a much longer pause. |
-| **Session persona** | Every run picks a mood (skimming / steady / thorough / distracted) that scales every timing multiplier. Two runs never share a pace fingerprint. |
-| **Bézier mouse paths, off-centre clicks** | Straight-line cursor jumps and dead-centre clicks have no human analogue. |
-| **Non-monotonic scrolling** | 25% of scroll bursts go **upward** (re-reading), with overshoot-and-correct, varying wheel deltas, and occasional keyboard scrolling. A strictly increasing scrollY with even deltas is the cleanest tell there is. |
-| **Search via the real search box** | Typed character-by-character with occasional typo + backspace. Deep-linking to `/search/results/people/?keywords=` with no referrer is a navigation pattern users don't produce. |
-| **Randomised visit order** | Results are visited in *near*-rank order with local swaps and a 15% skip rate, never in exact score order. |
-| **12% abandon rate** | Some profiles are opened and left. Perfect follow-through is not human. |
-| **Organic detours** | Between profile batches the session visits the feed / network / notifications. A session that is 100% extraction and 0% consumption is anomalous on its face. |
-| **Long breaks** | 45s–150s step-aways every 5–8 profiles. Flat throughput for 40 minutes is not a person. |
-| **Randomised search order** | Which of the four ICP searches runs first rotates every run. |
-| **Separate cookie-less context for company sites** | Careers-page traffic never touches the LinkedIn session. |
+| **Manual login, once, by hand** | Scripted logins are the single most-flagged event. The password is never typed or stored by the script. |
+| **Log-normal delays, not uniform** | A flat `random(2000,3000)` is *itself* a signature — real gaps cluster with a long tail. Measured: p50 2.4s, p90 3.2s, 7% chance of a much longer pause. |
+| **Session persona** | Every run picks a mood (skimming / steady / thorough / distracted) scaling every timing multiplier. Two runs never share a pace fingerprint. |
+| **Bézier mouse paths, off-centre clicks** | Measured 21–25 intermediate move events per click. A bot teleport produces 1. |
+| **Non-monotonic scrolling** | 25% of bursts scroll **upward** (re-reading), with overshoot-and-correct and varying wheel deltas. A strictly increasing scrollY with even deltas is the cleanest tell there is. |
+| **Search via the real search box** | Typed character-by-character with occasional typo + backspace. Deep-linking to `/search/results/people/?keywords=` with no referrer is a navigation pattern users do not produce. |
+| **Randomised order, 12% abandon rate** | Results are visited in *near*-rank order with local swaps and skips. Perfect follow-through is not human. |
+| **Organic detours** | Between batches the session visits feed / network / notifications. A session that is 100% extraction and 0% consumption is anomalous on its face. |
+| **Long breaks** | 45s–150s step-aways every 5–8 profiles. |
+| **Cookie-less context for company sites** | Careers-page traffic never touches the LinkedIn session. |
 
-### 3.2 The governor — the most important part
+### 5.2 The governor
 
-`src/session.js` refuses to start a run that would look mechanical:
+`src/session.js` refuses to start a Lane C run that would look mechanical:
 
-- **Working hours only** — 09:00–20:00 IST. A sourcing session at 03:00 is the loudest signal you can send.
-- **Weekdays only** — real recruiters are not sourcing on Sunday.
-- **Max 2 runs/day**, with a **3-hour cooldown** between them.
-- **Hard cap 40 profile views/day**, **20 per run**. Enforced across runs via `.state/usage.json`, so `--force` on run three still cannot exceed the daily cap without editing config.
+- **09:00–20:00 IST only** — a sourcing session at 03:00 is the loudest signal you can send
+- **Weekdays only**
+- **Max 2 runs/day**, **3-hour cooldown** between them
+- **Hard cap 40 profile views/day**, 10 per cold run — enforced across runs on disk, so `--force` still cannot exceed the daily cap
 
-These numbers are deliberately below what the account could get away with. The campaign takes 20 weeks either way; a restricted account takes it to never.
+**Lanes A and B are unaffected by the governor.** When it blocks Lane C, keep working — the revenue lane is still open.
 
-### 3.3 Warm-up schedule — mandatory for a new or dormant account
+### 5.3 Commercial Use Limit — a quota, not a warning
 
-A cold account that suddenly views 20 profiles a day is the pattern. Ramp:
+Free accounts have a monthly search allowance. Hit it (typically week three) and search stops until the 1st. **This is not a restriction and the account is in no danger.** The engine detects it, stops the cold lane, and says so. The correct response is to keep working the warm lane, which does not consume the quota because it does not search.
 
-| Days | `maxProfileVisitsPerRun` | `maxRunsPerDay` |
+### 5.4 The touch sequence — why it is also the safest pattern
+
+For every drafted lead the engine schedules three human-executed steps:
+
+```
+Day 0   view their profile      (they get the notification — you exist again)
+Day 1   react to a recent post  (now a name they have seen twice)
+Day 2   send the message        (lands as a follow-up, not a cold open)
+```
+
+This lifts reply rates, and it lowers the detection profile at the same time — three light touches spread over three days is indistinguishable from a person catching up with their network, because that is exactly what it is. **The behaviour that sells better is also the behaviour that looks more human.** That alignment is why it is built in rather than left to discipline.
+
+### 5.5 Warm-up — mandatory for a new or dormant account
+
+Yours is established (~2,000 connections), so you can start at full Lane C volume. A client's new account cannot:
+
+| Days | Cold profiles/run | Runs/day |
 |---|---|---|
-| 1–3 | 5 | 1 |
-| 4–7 | 8 | 1 |
-| 8–14 | 12 | 2 |
-| 15+ | 20 | 2 |
+| 1–3 | 3 | 1 |
+| 4–7 | 5 | 1 |
+| 8–14 | 8 | 2 |
+| 15+ | 10 | 2 |
 
-During warm-up, also use the account normally by hand — post, comment, accept connections. An account with organic activity absorbs far more automation than one that only ever runs the script.
+During warm-up, use the account normally by hand too. An account with organic activity absorbs far more automation than one that only ever runs the script.
 
-### 3.4 Stop conditions — non-negotiable
+### 5.6 Stop conditions — non-negotiable
 
-The script aborts on any of: checkpoint / auth wall, "We've restricted", "unusual activity", "You've reached the…", "Please verify". When that fires:
+The engine aborts on: checkpoint / auth wall, "We've restricted", "unusual activity", "Please verify", "try again later".
 
 1. **Stop. Do not re-run today.** Pushing through a soft warning is how it becomes a hard restriction.
-2. Open LinkedIn manually in that same profile. Browse normally for a day — feed, a few posts, a comment.
-3. Resume tomorrow at **half** the previous limits, and ramp back over a week.
-4. If a checkpoint appeared, complete it by hand before anything else.
+2. Open LinkedIn manually in that profile. Browse normally for a day.
+3. Resume at **half** the previous limits, ramping back over a week.
+4. Complete any checkpoint by hand before anything else.
 
-### 3.5 Client-deployment rules
+**Lanes A and B stay open throughout.** A restricted account does not stop the pipeline — that is the point of keeping the data in SQLite and the sheet.
 
-When a client runs this on their own machine and account:
+### 5.7 Client deployments
 
-- Each account gets its own `--profile=<name>` — separate cookie jar, separate viewport, separate usage counter. No bleed.
-- **They log in themselves.** You never hold their credentials. This is both the safe design and the one that survives a security review.
-- Give them the caps in §3.2 as defaults and tell them plainly why raising them is their risk, not yours.
-- Have them run the warm-up in §3.3 even on an established account.
-- One account per machine per day. Two accounts from one IP on the same day is a correlation you don't need.
+- One `--profile=<name>` per account — separate cookie jar, viewport, and usage counter. No bleed.
+- **They log in themselves.** You never hold their credentials. Safe design and survives a security review.
+- Give them the §5.5 warm-up even on an established account.
+- One account per machine per day. Two accounts from one IP is a correlation you do not need.
 
-### 3.6 What this does not do, and why
+### 5.8 What this deliberately does not do
 
-There is no fingerprint spoofing, canvas noise, proxy rotation, or "stealth" patching here. Those are an arms race on the platform's timetable, they break silently when the detection updates, and a spoofed fingerprint that mismatches your real one is *more* anomalous than an honest one. Volume and rhythm are what actually get accounts restricted, and that is what the governor controls.
+No fingerprint spoofing, canvas noise, proxy rotation, or "stealth" patching. Those are an arms race on the platform's timetable, they break silently when detection updates, and a spoofed fingerprint that mismatches your real one is *more* anomalous than an honest one.
 
-One thing to say out loud rather than bury: automated collection is against LinkedIn's User Agreement regardless of how carefully it is paced, and the account bears that risk. The controls here reduce the chance of a restriction; they do not make this sanctioned. Run it on an account you can afford to lose, and keep the lead data in the sheet so the pipeline survives if the account does not.
+Stated plainly rather than buried: automated collection breaches LinkedIn's User Agreement however carefully it is paced, and the account carries that risk. These controls reduce the chance of a restriction; they do not make it sanctioned. That is precisely why the architecture puts three quarters of the revenue in a lane that involves no automation at all.
 
 ---
 
-## 4. Daily operating procedure
+## 6. Daily operating procedure
 
-**Morning (10:00 IST, ~35 min)**
-1. `node src/index.js --profile=default`
-2. Watch the first minute. If a checkpoint appears, stop and follow §3.4.
-3. Let it finish. Do not touch the browser window while it runs.
+**One-time setup**
+1. Export connections (§1). Save to `leadgen/input/Connections.csv`.
+2. Set up Sheets auth (README § Google Sheets API auth).
+3. `npm run daily` — imports, enriches, scores, drafts, syncs.
 
-**Midday (13:00 IST, ~20 min) — review**
-4. Open the Sheet → **Leads** tab. Sort by Score.
-5. Spot-check five rows against the **Scoring Rationale** column. If a score looks wrong, the rationale tells you which signal caused it — fix the regex in `config.scoring`, not the row.
-6. Open **Message Drafts**. Read every draft. Check the company name and the role-volume number against the Careers URL in the same row.
-7. Delete any draft you would not send as written. A withheld draft is a feature — it means a variable could not be verified.
+**Every morning (~15 min)**
+4. `npm run daily` — re-imports (idempotent), enriches companies not checked in 21 days, re-scores, drafts, syncs.
+5. Open the Sheet → **Daily Actions**. This is your worklist, ordered by account priority.
 
-**Afternoon (15:00 IST, ~30 min) — send by hand**
-8. Send **at most 15–20** messages, spread across the afternoon, from the LinkedIn UI.
-9. Mark `Sent By Human? = y` and the date in the Drafts tab.
-10. Second run only if the morning run hit its cap and the cooldown has passed.
+**Every afternoon (~45 min) — the work that earns the money**
+6. Do the **view** and **engage** steps. They take seconds each.
+7. Read every **message** draft before sending. Check the company name and the volume claim against the Careers URL in the Companies tab.
+8. Send **at most 15–20**, spread across the afternoon, from the LinkedIn UI, by hand.
+9. Mark `Done? = y` in Daily Actions and fill `Sent On` in Message Drafts.
 
-**Friday (30 min) — review the numbers**
+**Optional, twice a day (~20 min)**
+10. `npm run cold` — tops up segments the warm network does not cover. Skip it whenever you like; it is the smallest contributor.
+
+**Every Friday (~30 min)**
 11. Reply rate by band. If Band A is not outperforming Band B, the rubric is wrong, not the message.
-12. Reply rate by segment. If staffing agencies outperform enterprises (they should), reweight toward them.
-13. Update the funnel table in §1 with your real rates.
+12. Reply rate by segment. If staffing agencies outperform enterprises (they should), reweight toward them in `config.json`.
+13. Update §2 with your real numbers.
 
 ---
 
-## 5. Message policy
+## 7. Message policy
 
-The template is fixed in `config.json`. Three rules govern changes:
-
-1. **Never invent a variable.** If openings could not be counted, the draft is withheld. "I noticed you post 10–15 roles a month" to someone posting two is the fastest way to lose a CHRO permanently.
-2. **Vary the wording, never the claim.** Drafts rotate through three openers and closers so ten messages aren't textually identical — duplicate-text detection is real, and identical messages read like spam to humans too. The offer, the 24-hour claim, and the link never change.
-3. **Every claim must be checkable.** "24 hours instead of 4 days", the free tier, the ranked-and-explained output — all are in the buyer's guide and all are verifiable by the prospect. Nothing in a draft should outrun that document.
+1. **Never invent a variable.** If openings could not be counted, the draft is withheld. "I noticed you post 10–15 roles a month" to someone posting two is unrecoverable — they are the one person guaranteed to know the real number.
+2. **The monthly claim is deliberately conservative.** A careers page accumulates ~2 months of postings, so the engine claims ~45% of the live count. Tested to always fall below the observed number.
+3. **Vary the wording, never the claim.** 20 angles across 4 segments × 5 situations. The offer, the 24-hour claim and the link are constant, and all trace to the buyer's guide.
+4. **One contact per company per week.** Messaging three people at one firm reads as a blast, not outreach. The engine enforces this.
+5. **Every claim must be checkable.** Nothing in a draft outruns the buyer's guide, because the prospect can read it.
 
 ---
 
-## 6. Success metrics
+## 8. Success metrics
 
 | Metric | Target | Where |
 |---|---|---|
-| Leads scored per week | 200 | Run Log tab |
-| Band A+B share of scored | ≥45% | Leads tab |
-| Drafts withheld | <20% | Drafts tab — higher means careers validation is failing |
-| Reply rate | ≥12% | Manual, Drafts tab |
+| Accounts scored | 300+ after warm import | Accounts tab |
+| Band A+B share | ≥40% | Accounts tab |
+| Drafts withheld | <20% | Drafts tab — higher means enrichment is failing |
+| Actions completed daily | ≥90% of worklist | Daily Actions tab |
+| Reply rate (warm) | ≥25% | Manual |
 | Trial starts | ≥40% of replies | MinMaxHR signups |
 | Paid conversion | ≥25% of trials | MinMaxHR billing |
 | **Account restrictions** | **0** | The one that ends the campaign |
 
 ---
 
-## 7. Roadmap — other sources, scheduled
+## 9. Roadmap
 
-LinkedIn is the first source, not the only one. The architecture already separates *sourcing* from *scoring, validating, drafting and writing*, so a new source only has to produce `{name, title, company, location, url}`:
+The architecture separates *sourcing* from *scoring, enrichment, drafting and rendering*. A new source only has to produce `{name, title, company, location, url}` and everything downstream works unchanged.
 
-- **Naukri / Indeed / Foundit** — search by recruiter, not candidate. Identifies high-volume hirers directly, with no LinkedIn risk.
-- **Careers-page crawler** — `src/careers.js` already counts openings; point it at a company list and it finds high-volume hirers without any social platform.
-- **Funding announcements** — a Series A/B is a hiring spike 60 days out. Best timing signal available.
-- **Job boards by ATS** — companies on Greenhouse / Lever / Keka are already tooling-aware and buy faster.
-
-Scheduling: once the daily run is stable, wrap it in a cron entry inside the active-hours window, at a **randomised minute** — a job that fires at exactly 10:00:00 every day is its own pattern. The governor enforces the caps whether a human or cron started the run.
+- **Lane B expansion** — post engagers and profile viewers. Low risk, natural openers, already scaffolded.
+- **Funding and new-leader signals** — both are wired through the Timing axis end-to-end but deliberately **not populated**, because we have no source for them yet and inventing evidence for a scoring axis is exactly what this design avoids. Add a funding feed and they start counting with no other change.
+- **Instagram / Facebook / WhatsApp** — handles are already being harvested from company website footers into the Companies tab, so the channel data is accumulating now without touching those platforms. Widen the GTM only once LinkedIn is proven.
+- **Naukri / Indeed / Foundit** — search by recruiter rather than candidate. Identifies high-volume hirers with no LinkedIn risk.
+- **Scheduling** — once the daily run is stable, cron it inside the active-hours window at a **randomised minute**. A job firing at exactly 10:00:00 daily is its own pattern. The governor enforces caps whether a human or cron started the run.

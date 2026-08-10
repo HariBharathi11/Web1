@@ -1,11 +1,17 @@
 {
-  "name": "minmaxhr-linkedin-lead-engine",
-  "version": "1.0.0",
-  "description": "Scores LinkedIn HR decision-makers against the MinMaxHR ICP and drafts (never sends) outreach.",
+  "name": "minmaxhr-revenue-engine",
+  "version": "2.0.0",
+  "description": "Account-based LinkedIn revenue engine for MinMaxHR: warm-network-first sourcing, Fit x Access x Timing scoring, and draft-only outreach.",
   "scripts": {
-    "run": "node src/index.js",
-    "dry-run": "node src/index.js --dry-run",
-    "smoke": "node test/smoke.js"
+    "daily": "node --no-warnings src/index.js daily",
+    "warm": "node --no-warnings src/index.js warm",
+    "enrich": "node --no-warnings src/index.js enrich",
+    "score": "node --no-warnings src/index.js score",
+    "draft": "node --no-warnings src/index.js draft",
+    "cold": "node --no-warnings src/index.js cold",
+    "sync": "node --no-warnings src/index.js sync",
+    "test": "node --no-warnings --test test/*.test.js",
+    "smoke": "node --no-warnings test/smoke.js"
   },
   "keywords": [],
   "author": "",
@@ -15,5 +21,8 @@
     "googleapis": "^174.0.1",
     "playwright": "^1.62.1"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=22.5.0"
+  }
 }

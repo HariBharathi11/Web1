@@ -208,7 +208,6 @@ async function detectBlock(page) {
   const signals = [
     ["We've restricted", 'account restriction notice'],
     ['unusual activity', 'unusual-activity warning'],
-    ["You've reached the", 'commercial-use / search limit'],
     ['try again later', 'soft rate limit'],
     ['Please verify', 'verification challenge'],
   ];
@@ -216,6 +215,48 @@ async function detectBlock(page) {
     if (body.includes(needle)) return label;
   }
   return null;
+}
+
+/**
+ * The Commercial Use Limit is NOT a block, and treating it as one wastes the
+ * rest of the month.
+ *
+ * Free accounts get a monthly allowance of profile searches. Hit it and search
+ * stops working until the 1st — typically around week three if you search
+ * daily. It is a quota, not a warning: the account is in no danger, it simply
+ * cannot search. The right response is to stop the cold lane and keep working
+ * the warm lane, which does not consume the quota at all because it does not
+ * search.
+ */
+async function detectCommercialLimit(page) {
+  const body = (await page.textContent('body').catch(() => '')) || '';
+  if (/You've reached the (monthly )?commercial use limit/i.test(body) ||
+      /commercial use limit/i.test(body) ||
+      /reached the monthly limit/i.test(body)) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Works out which LinkedIn product this profile is signed into, so the run can
+ * adapt rather than assume. Sales Navigator and Recruiter have their own search
+ * surfaces; a free account has a monthly quota. Detection is by navigation
+ * chrome, which changes far less often than any content selector.
+ */
+async function detectAccountTier(page) {
+  try {
+    const tier = await page.evaluate(() => {
+      const html = document.documentElement.innerHTML;
+      if (/sales-?navigator|salesNav/i.test(html)) return 'sales_navigator';
+      if (/talent\/hire|recruiter-?home/i.test(html)) return 'recruiter';
+      if (/premium-?(badge|icon|upsell-)/i.test(html) && /premium/i.test(html)) return 'premium';
+      return 'free';
+    });
+    return tier;
+  } catch {
+    return 'unknown';
+  }
 }
 
 /** Occasionally do something that isn't scraping, so the session isn't pure extraction. */
@@ -245,7 +286,7 @@ async function organicDetour(page, persona) {
 }
 
 module.exports = {
-  launchSession, ensureLoggedIn, detectBlock, organicDetour,
-  checkGovernor, recordRun, remainingProfileBudget,
+  launchSession, ensureLoggedIn, detectBlock, detectCommercialLimit, detectAccountTier,
+  organicDetour, checkGovernor, recordRun, remainingProfileBudget,
   STATE_DIR,
 };

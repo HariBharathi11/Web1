@@ -1,33 +1,45 @@
 {
   "product": {
     "name": "MinMaxHR",
-    "trialLink": "https://minmaxhr.com/signup",
-    "senderName": "CHANGE_ME",
-    "senderCompany": "HAB Business Solutions"
+    "trialLink": "https://minmaxhr.com/contact",
+    "senderName": "Hari",
+    "senderTitle": "Founder & Business Intelligence Division",
+    "senderCompany": "HAB Business Solutions",
+    "signOff": "— Hari, Founder & Business Intelligence Division, HAB Business Solutions"
+  },
+
+  "lanes": {
+    "warm":       { "enabled": true,  "connectionsCsv": "input/Connections.csv" },
+    "engagement": { "enabled": true,  "profileBudget": 10 },
+    "cold":       { "enabled": true,  "profileBudget": 10 }
   },
 
   "searches": [
-    {
-      "label": "CHRO India",
-      "keywords": "CHRO India",
-      "titleHints": ["chro", "chief human resources", "chief people officer"]
-    },
-    {
-      "label": "Staffing Agency India HR",
-      "keywords": "Staffing Agency India HR",
-      "titleHints": ["staffing", "recruitment", "talent acquisition", "rpo"]
-    },
-    {
-      "label": "VP HR India",
-      "keywords": "VP Human Resources India",
-      "titleHints": ["vp hr", "vice president human resources", "head of hr"]
-    },
-    {
-      "label": "TA Lead India",
-      "keywords": "Talent Acquisition Lead India",
-      "titleHints": ["talent acquisition", "ta lead", "recruitment manager"]
-    }
+    { "label": "Staffing India",   "keywords": "Staffing Agency India HR",        "region": "IN" },
+    { "label": "CHRO India",       "keywords": "CHRO India",                       "region": "IN" },
+    { "label": "Staffing Gulf",    "keywords": "Recruitment Agency Dubai founder", "region": "GULF" },
+    { "label": "Staffing SG",      "keywords": "Recruitment Agency Singapore",     "region": "SG" },
+    { "label": "Staffing US",      "keywords": "Staffing Agency owner USA",        "region": "US" },
+    { "label": "TA Lead India",    "keywords": "Talent Acquisition Lead India",    "region": "IN" }
   ],
+
+  "regions": {
+    "IN":     { "label": "India",     "multiplier": 1.0, "match": "india|bengaluru|bangalore|mumbai|delhi|chennai|hyderabad|pune|gurgaon|gurugram|noida|kolkata|ahmedabad|coimbatore|kochi|jaipur" },
+    "GULF":   { "label": "Gulf",      "multiplier": 1.6, "match": "dubai|abu dhabi|sharjah|united arab emirates|uae|saudi|riyadh|jeddah|qatar|doha|kuwait|bahrain|oman|muscat" },
+    "SG":     { "label": "Singapore", "multiplier": 1.5, "match": "singapore" },
+    "EU":     { "label": "Europe",    "multiplier": 1.3, "match": "united kingdom|london|ireland|dublin|germany|berlin|munich|france|paris|netherlands|amsterdam|spain|madrid|italy|poland|sweden|switzerland|zurich|belgium|portugal|lisbon" },
+    "US":     { "label": "USA",       "multiplier": 1.8, "match": "united states|usa|new york|california|san francisco|texas|austin|chicago|boston|seattle|atlanta|dallas|denver|florida|new jersey" },
+    "OTHER":  { "label": "Other",     "multiplier": 0.6, "match": "" }
+  },
+
+  "venn": {
+    "weights": { "fit": 0.40, "access": 0.35, "timing": 0.25 },
+    "bandA": 75,
+    "bandB": 60,
+    "accessByDegree": { "1": 100, "2": 70, "3": 30 },
+    "accessEngagedBonus": 15,
+    "accessMultiContactBonus": 10
+  },
 
   "targetLeadCount": 20,
 
@@ -54,8 +66,8 @@
   },
 
   "scoring": {
-    "tier1TitleRegex": "(chro|chief human resource|chief people|chief talent|(vp|v\\.p\\.|vice president)[ ,\\-]*(of )?(human resource|people|hr|talent)|(head|director) of (hr|human resource|people|talent)|hr director|people director|cxo)",
-    "tier2TitleRegex": "(hr manager|human resources? manager|talent acquisition|ta lead|recruit(ment|ing) (lead|manager|head|director)|hiring manager|people ops|hr business partner|hrbp|hr lead|staffing manager)",
+    "tier1TitleRegex": "(chro|chief human resource|chief people|chief talent|(vp|v\\.p\\.|vice president)[ ,\\-]*(of )?(human resource|people|hr|talent)|(head|director) of (hr|human resource|people|talent)|hr director|people director|founder|co-founder|ceo|managing director|proprietor)",
+    "tier2TitleRegex": "(hr manager|human resources? manager|talent acquisition|ta lead|recruit(ment|ing) (lead|manager|head|director|consultant)|hiring manager|people ops|hr business partner|hrbp|hr lead|staffing manager|delivery manager)",
     "highVolumeQuarterlyHires": 100,
     "midMarketOpenRolesMin": 8,
     "priorityThreshold": 75
@@ -72,15 +84,20 @@
   },
 
   "sheets": {
-    "spreadsheetId": "CHANGE_ME",
-    "leadsTab": "Leads",
-    "draftsTab": "Message Drafts",
-    "runLogTab": "Run Log"
+    "spreadsheetId": "1fO3q-UvLN6GdRlwk5hzzhrC1qCr3LtkjUgC401Lz9TQ",
+    "tabs": {
+      "accounts": "Accounts",
+      "companies": "Companies",
+      "people": "People",
+      "drafts": "Message Drafts",
+      "actions": "Daily Actions",
+      "runLog": "Run Log"
+    }
   },
 
   "outreach": {
     "draftOnly": true,
     "topNForMessages": 10,
-    "template": "Hi {{firstName}} — I noticed {{company}} posts {{roleVolume}} new roles a month. I'm guessing screening the first 100 applications is eating into TA time.\nWe built MinMaxHR to rank and explain every applicant in 24 hours instead of 4 days. Try it free on one live role: {{link}}. Reply here if interested."
+    "dailySendCeiling": 20
   }
 }
