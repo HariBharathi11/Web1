@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "description": "Account-based LinkedIn revenue engine for MinMaxHR: warm-network-first sourcing, Fit x Access x Timing scoring, and draft-only outreach.",
   "scripts": {
+    "verify": "node --no-warnings src/index.js verify",
     "daily": "node --no-warnings src/index.js daily",
     "warm": "node --no-warnings src/index.js warm",
     "enrich": "node --no-warnings src/index.js enrich",
@@ -11,7 +12,8 @@
     "cold": "node --no-warnings src/index.js cold",
     "sync": "node --no-warnings src/index.js sync",
     "test": "node --no-warnings --test test/*.test.js",
-    "smoke": "node --no-warnings test/smoke.js"
+    "smoke": "node --no-warnings test/smoke.js",
+    "revenue": "node --no-warnings src/index.js revenue"
   },
   "keywords": [],
   "author": "",

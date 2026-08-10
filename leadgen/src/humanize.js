@@ -198,6 +198,27 @@ async function humanScroll(page, persona, { depth = 'full' } = {}) {
   }
 }
 
+/**
+ * Fast scroll for pages where nobody is watching the rhythm.
+ *
+ * humanScroll spends most of its time *pausing to read*, which is exactly right
+ * on LinkedIn and pure waste on a company's own careers page. Public marketing
+ * sites do not run behavioural detection, and enrichment has to get through
+ * hundreds of them — at human pace that is hours per run instead of minutes.
+ *
+ * Still scrolls properly (lazy-loaded job lists need it), just without the
+ * reading pauses.
+ */
+async function quickScroll(page, { passes = 4 } = {}) {
+  for (let i = 0; i < passes; i++) {
+    await page.mouse.wheel(0, 1200 + Math.random() * 800);
+    await sleep(randInt(60, 180));
+  }
+  // One trip back up, so anything that lazy-loads on upward scroll also fires.
+  await page.mouse.wheel(0, -2000);
+  await sleep(randInt(80, 200));
+}
+
 /** Scroll an element into view organically rather than via scrollIntoView(). */
 async function scrollToElement(page, locator, persona) {
   for (let attempt = 0; attempt < 12; attempt++) {
@@ -264,6 +285,6 @@ module.exports = {
   randInt, rand, humanDelay, pick, chance, sleep,
   newPersona, pause, dwell, longBreak,
   moveMouse, humanClick, idleMouseDrift,
-  humanScroll, scrollToElement,
+  humanScroll, quickScroll, scrollToElement,
   humanType, shuffle, humanOrder,
 };

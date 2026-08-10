@@ -2,6 +2,8 @@
 /**
  * index.js — the run.
  *
+ *   node src/index.js verify          preflight: browser, credentials, sheet, caps
+ *   node src/index.js revenue         map the pipeline against the revenue target
  *   node src/index.js warm            import Connections.csv (no browser, no risk)
  *   node src/index.js enrich          enrich companies from their own websites
  *   node src/index.js score           re-score every account through the Venn
@@ -350,6 +352,8 @@ async function main() {
   let profiles = 0, bands = { a: 0, b: 0, c: 0 }, drafts = { drafted: 0 }, outcome = 'completed';
 
   switch (command) {
+    case 'verify':  await require('./verify').verify(config); break;
+    case 'revenue': require('./revenue').report(config); break;
     case 'warm':   laneWarm(db); break;
     case 'enrich': await laneEnrich(db); break;
     case 'score':  bands = laneScore(db); break;
@@ -369,7 +373,7 @@ async function main() {
       break;
 
     default:
-      console.log(`\nUnknown command "${command}". Try: warm | enrich | score | draft | cold | sync | daily`);
+      console.log(`\nUnknown command "${command}". Try: verify | revenue | warm | enrich | score | draft | cold | sync | daily`);
       process.exit(1);
   }
 

@@ -20,7 +20,7 @@
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
-const { sleep, humanDelay, randInt, chance } = require('./humanize');
+const { sleep, humanDelay, randInt, chance, humanClick } = require('./humanize');
 
 const STATE_DIR = path.resolve(__dirname, '..', '.state');
 const COUNTER_FILE = path.join(STATE_DIR, 'usage.json');
@@ -136,6 +136,14 @@ async function launchSession(config, profileName = 'default') {
   const userDataDir = path.join(STATE_DIR, 'profiles', profileName);
   fs.mkdirSync(userDataDir, { recursive: true });
 
+  // Microsoft Edge, driven through Playwright's `channel`. Edge is Chromium
+  // underneath, so everything in humanize.js works identically — but it is the
+  // browser actually installed on this machine and the one whose fingerprint
+  // matches every other thing this user does. Running the real everyday browser
+  // is less anomalous than running a bundled Chromium that exists nowhere else
+  // on the system.
+  const channel = config.browser?.channel || 'msedge';
+
   // A stable-but-plausible viewport per profile. Constant across runs for the
   // same profile (a person's monitor does not change daily), different between
   // profiles.
@@ -145,7 +153,8 @@ async function launchSession(config, profileName = 'default') {
   ];
   const vpIndex = [...profileName].reduce((a, c) => a + c.charCodeAt(0), 0) % viewports.length;
 
-  const context = await chromium.launchPersistentContext(userDataDir, {
+  const launchOpts = {
+    channel,
     headless: false, // never headless — see the file header
     viewport: viewports[vpIndex],
     locale: 'en-IN',
@@ -154,10 +163,25 @@ async function launchSession(config, profileName = 'default') {
       '--disable-blink-features=AutomationControlled',
       '--start-maximized',
     ],
-  });
+  };
+
+  let context;
+  try {
+    context = await chromium.launchPersistentContext(userDataDir, launchOpts);
+  } catch (e) {
+    if (/channel|executable|not found|Failed to launch/i.test(e.message)) {
+      throw new Error(
+        `Could not launch Microsoft Edge (channel "${channel}").\n` +
+        `  • Install Edge, or run:  npx playwright install msedge\n` +
+        `  • Or set browser.channel to "chrome" or null (bundled Chromium) in config.json\n` +
+        `Original error: ${e.message.split('\n')[0]}`
+      );
+    }
+    throw e;
+  }
 
   context.setDefaultTimeout(45000);
-  return { context, userDataDir };
+  return { context, userDataDir, channel };
 }
 
 /**
@@ -166,33 +190,129 @@ async function launchSession(config, profileName = 'default') {
  * types credentials. First run is interactive; every run after that is not,
  * because the profile keeps the session cookie.
  */
+/** Are we on a real logged-in LinkedIn page? */
+async function isAuthenticated(page) {
+  const url = page.url();
+  if (/\/(login|checkpoint|authwall|uas\/login)/.test(url)) return false;
+  if (!/linkedin\.com/.test(url)) return false;
+  // The global nav only renders for a signed-in session.
+  return page.locator('#global-nav, .global-nav, [data-test-global-nav]')
+    .first().isVisible({ timeout: 5000 }).catch(() => false);
+}
+
+/**
+ * Clicks LinkedIn's "Continue with Google" button.
+ *
+ * LinkedIn renders Google sign-in three different ways depending on the
+ * session: a Google One Tap iframe, an inline button, or a plain link on the
+ * /login page. This tries all three and reports whether it managed to start
+ * the flow — it never types an email or password, and never chooses an account.
+ * Picking the Google account, and any 2FA, is yours.
+ */
+async function clickGoogleSignIn(page, persona) {
+  const inlineSelectors = [
+    'button:has-text("Continue with Google")',
+    'a:has-text("Continue with Google")',
+    'button:has-text("Sign in with Google")',
+    '[aria-label*="Continue with Google" i]',
+    '[data-test-id*="google" i]',
+  ];
+
+  for (const sel of inlineSelectors) {
+    const el = page.locator(sel).first();
+    if (await el.isVisible({ timeout: 2500 }).catch(() => false)) {
+      await humanClick(page, el, persona);
+      return 'inline button';
+    }
+  }
+
+  // Google One Tap renders inside a cross-origin iframe.
+  for (const frame of page.frames()) {
+    if (!/accounts\.google\.com|gsi/.test(frame.url())) continue;
+    for (const sel of ['div[role="button"]', 'button', '#container']) {
+      const el = frame.locator(sel).first();
+      if (await el.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await el.click({ delay: randInt(40, 120) }).catch(() => {});
+        return 'One Tap iframe';
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Confirms the profile is signed in, and if not, opens the Google sign-in flow
+ * and WAITS for you to complete it by hand.
+ *
+ * The script never types your email or password, never selects an account, and
+ * never touches a 2FA code. It clicks "Continue with Google" and then watches
+ * until LinkedIn is authenticated. Everything in between is yours — which is
+ * both the safe design and the only one that works with Google's own automation
+ * detection, since a scripted Google login is far more likely to be challenged
+ * than a scripted LinkedIn one.
+ *
+ * After the first run the Edge profile keeps the session, so this returns
+ * immediately every subsequent day.
+ */
 async function ensureLoggedIn(page, persona, { timeoutMinutes = 10 } = {}) {
   await page.goto('https://www.linkedin.com/feed/', { waitUntil: 'domcontentloaded' });
   await sleep(humanDelay(2500, 5000));
 
-  if (!page.url().includes('/login') && !page.url().includes('/checkpoint') && !page.url().includes('/authwall')) {
-    console.log('✔ Session already authenticated.');
+  if (await isAuthenticated(page)) {
+    console.log('✔ Already signed in — the Edge profile remembered the session.');
     return true;
   }
 
-  console.log('\n──────────────────────────────────────────────────────────');
-  console.log('  LOG IN BY HAND in the browser window that just opened.');
-  console.log('  Complete any 2FA or verification prompt yourself.');
-  console.log('  This script will never type or store your password.');
-  console.log(`  Waiting up to ${timeoutMinutes} minutes…`);
-  console.log('──────────────────────────────────────────────────────────\n');
+  // Land on the login page so the Google button is present.
+  if (!/\/(login|uas\/login)/.test(page.url())) {
+    await page.goto('https://www.linkedin.com/login', { waitUntil: 'domcontentloaded' });
+    await sleep(humanDelay(1500, 3500));
+  }
+
+  const clicked = await clickGoogleSignIn(page, persona);
+
+  console.log('\n┌───────────────────────────────────────────────────────────────┐');
+  if (clicked) {
+    console.log(`│  Opened Google sign-in (${clicked}).`.padEnd(64) + '│');
+    console.log('│  Pick your Google account in the window and finish 2FA.       │');
+  } else {
+    console.log('│  Could not find the Google button — sign in however you like. │');
+  }
+  console.log('│                                                               │');
+  console.log('│  This script never types your email, password, or 2FA code.    │');
+  console.log(`│  Waiting up to ${String(timeoutMinutes).padEnd(2)} minutes…`.padEnd(64) + '│');
+  console.log('└───────────────────────────────────────────────────────────────┘\n');
+
+  // Google may open its account chooser in a popup window rather than in-page.
+  page.context().on('page', async (popup) => {
+    if (/accounts\.google\.com/.test(popup.url())) {
+      console.log('   … Google account chooser opened in a new window. Complete it there.');
+    }
+  });
 
   const deadline = Date.now() + timeoutMinutes * 60000;
+  let announced = false;
+
   while (Date.now() < deadline) {
     await sleep(3000);
-    const url = page.url();
-    if (url.includes('/feed') || url.includes('/in/')) {
-      console.log('✔ Logged in. The profile will remember this — no login next run.');
+
+    if (await isAuthenticated(page)) {
+      console.log('✔ Signed in. This profile will remember it — no login next run.');
       await sleep(humanDelay(2000, 4000));
       return true;
     }
+
+    // If the user finished in a popup, LinkedIn sometimes leaves the original
+    // tab on the login page. Nudge it once rather than timing out beside a
+    // session that is actually live.
+    if (!announced && /accounts\.google\.com|\/login/.test(page.url()) && Date.now() - deadline + timeoutMinutes * 60000 > 20000) {
+      announced = true;
+      await page.goto('https://www.linkedin.com/feed/', { waitUntil: 'domcontentloaded' }).catch(() => {});
+    }
   }
-  throw new Error('Login timed out. Re-run and sign in when the window opens.');
+
+  throw new Error('Sign-in timed out. Re-run the command and complete Google sign-in when the window opens.');
 }
 
 /**
@@ -286,7 +406,8 @@ async function organicDetour(page, persona) {
 }
 
 module.exports = {
-  launchSession, ensureLoggedIn, detectBlock, detectCommercialLimit, detectAccountTier,
+  launchSession, ensureLoggedIn, isAuthenticated, clickGoogleSignIn,
+  detectBlock, detectCommercialLimit, detectAccountTier,
   organicDetour, checkGovernor, recordRun, remainingProfileBudget,
   STATE_DIR,
 };

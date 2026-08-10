@@ -7,42 +7,114 @@
     "senderCompany": "HAB Business Solutions",
     "signOff": "— Hari, Founder & Business Intelligence Division, HAB Business Solutions"
   },
-
+  "browser": {
+    "channel": "msedge",
+    "_channelOptions": "msedge | chrome | msedge-beta | null (bundled Chromium)",
+    "loginMethod": "google",
+    "loginTimeoutMinutes": 10
+  },
+  "revenue": {
+    "targetMonthlyINR": 100000,
+    "growthPlanINR": 9999,
+    "growthPlanDays": 30,
+    "assumedRepeatRate": 0.7,
+    "enterpriseDealINR": 40000
+  },
   "lanes": {
-    "warm":       { "enabled": true,  "connectionsCsv": "input/Connections.csv" },
-    "engagement": { "enabled": true,  "profileBudget": 10 },
-    "cold":       { "enabled": true,  "profileBudget": 10 }
+    "warm": {
+      "enabled": true,
+      "connectionsCsv": "input/Connections.csv"
+    },
+    "engagement": {
+      "enabled": true,
+      "profileBudget": 10
+    },
+    "cold": {
+      "enabled": true,
+      "profileBudget": 10
+    }
   },
-
   "searches": [
-    { "label": "Staffing India",   "keywords": "Staffing Agency India HR",        "region": "IN" },
-    { "label": "CHRO India",       "keywords": "CHRO India",                       "region": "IN" },
-    { "label": "Staffing Gulf",    "keywords": "Recruitment Agency Dubai founder", "region": "GULF" },
-    { "label": "Staffing SG",      "keywords": "Recruitment Agency Singapore",     "region": "SG" },
-    { "label": "Staffing US",      "keywords": "Staffing Agency owner USA",        "region": "US" },
-    { "label": "TA Lead India",    "keywords": "Talent Acquisition Lead India",    "region": "IN" }
+    {
+      "label": "Staffing India",
+      "keywords": "Staffing Agency India HR",
+      "region": "IN"
+    },
+    {
+      "label": "CHRO India",
+      "keywords": "CHRO India",
+      "region": "IN"
+    },
+    {
+      "label": "Staffing Gulf",
+      "keywords": "Recruitment Agency Dubai founder",
+      "region": "GULF"
+    },
+    {
+      "label": "Staffing SG",
+      "keywords": "Recruitment Agency Singapore",
+      "region": "SG"
+    },
+    {
+      "label": "Staffing US",
+      "keywords": "Staffing Agency owner USA",
+      "region": "US"
+    },
+    {
+      "label": "TA Lead India",
+      "keywords": "Talent Acquisition Lead India",
+      "region": "IN"
+    }
   ],
-
   "regions": {
-    "IN":     { "label": "India",     "multiplier": 1.0, "match": "india|bengaluru|bangalore|mumbai|delhi|chennai|hyderabad|pune|gurgaon|gurugram|noida|kolkata|ahmedabad|coimbatore|kochi|jaipur" },
-    "GULF":   { "label": "Gulf",      "multiplier": 1.6, "match": "dubai|abu dhabi|sharjah|united arab emirates|uae|saudi|riyadh|jeddah|qatar|doha|kuwait|bahrain|oman|muscat" },
-    "SG":     { "label": "Singapore", "multiplier": 1.5, "match": "singapore" },
-    "EU":     { "label": "Europe",    "multiplier": 1.3, "match": "united kingdom|london|ireland|dublin|germany|berlin|munich|france|paris|netherlands|amsterdam|spain|madrid|italy|poland|sweden|switzerland|zurich|belgium|portugal|lisbon" },
-    "US":     { "label": "USA",       "multiplier": 1.8, "match": "united states|usa|new york|california|san francisco|texas|austin|chicago|boston|seattle|atlanta|dallas|denver|florida|new jersey" },
-    "OTHER":  { "label": "Other",     "multiplier": 0.6, "match": "" }
+    "IN": {
+      "label": "India",
+      "multiplier": 1.0,
+      "match": "india|bengaluru|bangalore|mumbai|delhi|chennai|hyderabad|pune|gurgaon|gurugram|noida|kolkata|ahmedabad|coimbatore|kochi|jaipur"
+    },
+    "GULF": {
+      "label": "Gulf",
+      "multiplier": 1.6,
+      "match": "dubai|abu dhabi|sharjah|united arab emirates|uae|saudi|riyadh|jeddah|qatar|doha|kuwait|bahrain|oman|muscat"
+    },
+    "SG": {
+      "label": "Singapore",
+      "multiplier": 1.5,
+      "match": "singapore"
+    },
+    "EU": {
+      "label": "Europe",
+      "multiplier": 1.3,
+      "match": "united kingdom|london|ireland|dublin|germany|berlin|munich|france|paris|netherlands|amsterdam|spain|madrid|italy|poland|sweden|switzerland|zurich|belgium|portugal|lisbon"
+    },
+    "US": {
+      "label": "USA",
+      "multiplier": 1.8,
+      "match": "united states|usa|new york|california|san francisco|texas|austin|chicago|boston|seattle|atlanta|dallas|denver|florida|new jersey"
+    },
+    "OTHER": {
+      "label": "Other",
+      "multiplier": 0.6,
+      "match": ""
+    }
   },
-
   "venn": {
-    "weights": { "fit": 0.40, "access": 0.35, "timing": 0.25 },
+    "weights": {
+      "fit": 0.4,
+      "access": 0.35,
+      "timing": 0.25
+    },
     "bandA": 75,
     "bandB": 60,
-    "accessByDegree": { "1": 100, "2": 70, "3": 30 },
+    "accessByDegree": {
+      "1": 100,
+      "2": 70,
+      "3": 30
+    },
     "accessEngagedBonus": 15,
     "accessMultiContactBonus": 10
   },
-
   "targetLeadCount": 20,
-
   "limits": {
     "maxProfilesPerRun": 25,
     "maxProfileVisitsPerRun": 20,
@@ -50,21 +122,41 @@
     "maxRunsPerDay": 2,
     "cooldownBetweenRunsMinutes": 180,
     "hardDailyProfileCap": 40,
-    "activeHours": { "startHour": 9, "endHour": 20, "timezone": "Asia/Kolkata" },
+    "activeHours": {
+      "startHour": 9,
+      "endHour": 20,
+      "timezone": "Asia/Kolkata"
+    },
     "skipWeekends": true
   },
-
   "pacing": {
-    "actionDelayMs": [2000, 3000],
-    "pageDwellMs": [4000, 11000],
-    "profileDwellMs": [8000, 22000],
-    "longBreakEveryNProfiles": [5, 8],
-    "longBreakMs": [45000, 150000],
-    "typingDelayMs": [90, 260],
+    "actionDelayMs": [
+      2000,
+      3000
+    ],
+    "pageDwellMs": [
+      4000,
+      11000
+    ],
+    "profileDwellMs": [
+      8000,
+      22000
+    ],
+    "longBreakEveryNProfiles": [
+      5,
+      8
+    ],
+    "longBreakMs": [
+      45000,
+      150000
+    ],
+    "typingDelayMs": [
+      90,
+      260
+    ],
     "abandonRate": 0.12,
     "backtrackRate": 0.25
   },
-
   "scoring": {
     "tier1TitleRegex": "(chro|chief human resource|chief people|chief talent|(vp|v\\.p\\.|vice president)[ ,\\-]*(of )?(human resource|people|hr|talent)|(head|director) of (hr|human resource|people|talent)|hr director|people director|founder|co-founder|ceo|managing director|proprietor)",
     "tier2TitleRegex": "(hr manager|human resources? manager|talent acquisition|ta lead|recruit(ment|ing) (lead|manager|head|director|consultant)|hiring manager|people ops|hr business partner|hrbp|hr lead|staffing manager|delivery manager)",
@@ -72,17 +164,22 @@
     "midMarketOpenRolesMin": 8,
     "priorityThreshold": 75
   },
-
   "careersValidation": {
     "enabled": true,
     "timeoutMs": 25000,
     "maxCompaniesPerRun": 20,
     "candidatePaths": [
-      "/careers", "/careers/", "/jobs", "/job-openings", "/work-with-us",
-      "/company/careers", "/about/careers", "/current-openings", "/openings"
+      "/careers",
+      "/careers/",
+      "/jobs",
+      "/job-openings",
+      "/work-with-us",
+      "/company/careers",
+      "/about/careers",
+      "/current-openings",
+      "/openings"
     ]
   },
-
   "sheets": {
     "spreadsheetId": "1fO3q-UvLN6GdRlwk5hzzhrC1qCr3LtkjUgC401Lz9TQ",
     "tabs": {
@@ -94,7 +191,6 @@
       "runLog": "Run Log"
     }
   },
-
   "outreach": {
     "draftOnly": true,
     "topNForMessages": 10,

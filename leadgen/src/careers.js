@@ -11,7 +11,7 @@
  * profile would both leak the session and add avoidable traffic to it.
  */
 
-const { humanDelay, sleep, humanScroll, newPersona, rand, chance } = require('./humanize');
+const { humanDelay, sleep, quickScroll, rand, chance } = require('./humanize');
 
 // ---------------------------------------------------------------------------
 // Resolve company → website
@@ -24,7 +24,7 @@ async function websiteFromLinkedInCompany(page, companyLinkedIn, persona) {
   try {
     await page.goto(aboutUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await sleep(humanDelay(2000, 4500));
-    await humanScroll(page, persona, { depth: 'partial' });
+    await quickScroll(page);
 
     return await page.evaluate(() => {
       const links = Array.from(document.querySelectorAll('a[href]'));
@@ -105,58 +105,80 @@ async function countOpenings(page) {
   });
 }
 
-/** Tries the usual careers paths on a domain, plus any "Careers" nav link. */
-async function probeCareers(page, baseUrl, config, persona) {
+/** Reads a page and counts openings on it. */
+async function readCareersPage(page, url, config) {
+  const resp = await page.goto(url, {
+    waitUntil: 'domcontentloaded',
+    timeout: config.careersValidation.timeoutMs,
+  });
+  if (!resp || resp.status() >= 400) return null;
+  await sleep(200 + Math.random() * 400);
+  await quickScroll(page);
+  return { ...(await countOpenings(page)), careersUrl: page.url().split('?')[0] };
+}
+
+/**
+ * Finds and reads a company's careers page.
+ *
+ * Order matters, and it is deliberate:
+ *
+ * 1. **Follow the site's own careers link first.** One request, and it is by far
+ *    the highest-yield route — the company tells you where its jobs live,
+ *    including when they live on another host entirely (jobs.acme.com,
+ *    boards.greenhouse.io/acme). Guessing paths can never find those.
+ * 2. **Only then guess common paths**, and guess *all* of them rather than a
+ *    sample. An earlier version shuffled nine candidates and tried five, which
+ *    silently missed /jobs about 44% of the time — a company with a dozen live
+ *    roles would score zero on Timing and drop out of the pipeline entirely.
+ *    Wrong-but-fast is worse than slow here, because a false zero looks
+ *    identical to a genuinely quiet company.
+ */
+async function probeCareers(page, baseUrl, config) {
   const origin = (() => {
     try { return new URL(baseUrl).origin; } catch { return null; }
   })();
   if (!origin) return null;
 
-  const paths = [...config.careersValidation.candidatePaths];
-  // Never probe in the same order twice — even ordinary sites log this.
-  paths.sort(() => Math.random() - 0.5);
-
-  for (const p of paths.slice(0, 5)) {
-    const url = origin + p;
-    try {
-      const resp = await page.goto(url, {
-        waitUntil: 'domcontentloaded',
-        timeout: config.careersValidation.timeoutMs,
-      });
-      if (!resp || resp.status() >= 400) continue;
-
-      await sleep(humanDelay(1200, 3200));
-      await humanScroll(page, persona, { depth: 'partial' });
-
-      const result = await countOpenings(page);
-      if (result.openings > 0 || result.atsDetected) {
-        return { ...result, careersUrl: url };
-      }
-    } catch {
-      // dead path, next
-    }
-  }
-
-  // Fall back to the homepage and follow whatever it calls its careers link.
+  // --- 1. the site's own careers link ---------------------------------------
   try {
-    await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: config.careersValidation.timeoutMs });
-    await sleep(humanDelay(1500, 3500));
-    const careersHref = await page.evaluate(() => {
-      const a = Array.from(document.querySelectorAll('a[href]')).find((x) =>
-        /career|jobs|join us|work with us|hiring|we.re hiring/i.test(x.innerText + ' ' + x.href)
-      );
-      return a ? a.href : '';
-    });
-    if (careersHref) {
-      await sleep(humanDelay(800, 2200));
-      await page.goto(careersHref, { waitUntil: 'domcontentloaded', timeout: config.careersValidation.timeoutMs });
-      await sleep(humanDelay(1500, 3500));
-      await humanScroll(page, persona, { depth: 'partial' });
-      const result = await countOpenings(page);
-      return { ...result, careersUrl: careersHref };
+    if (!page.url().startsWith(origin)) {
+      await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: config.careersValidation.timeoutMs });
+      await sleep(200 + Math.random() * 400);
     }
-  } catch {
-    // nothing usable
+
+    const href = await page.evaluate(() => {
+      const links = Array.from(document.querySelectorAll('a[href]'));
+      // Prefer an explicit "careers"/"jobs" label over an incidental match.
+      const scored = links
+        .map((a) => {
+          const text = (a.innerText || '').trim().toLowerCase();
+          const url = a.href.toLowerCase();
+          let score = 0;
+          if (/^(careers?|jobs|vacancies|openings)$/.test(text)) score += 10;
+          if (/\b(career|job|join us|work with us|we.re hiring|current opening)/.test(text)) score += 5;
+          if (/\/(careers?|jobs|vacanc|openings)/.test(url)) score += 4;
+          if (/greenhouse\.io|lever\.co|workday|zohorecruit|keka|smartrecruiters|freshteam|darwinbox/.test(url)) score += 8;
+          return { href: a.href, score };
+        })
+        .filter((x) => x.score > 0 && /^https?:/.test(x.href))
+        .sort((a, b) => b.score - a.score);
+      return scored.length ? scored[0].href : '';
+    });
+
+    if (href) {
+      await sleep(150 + Math.random() * 350);
+      const result = await readCareersPage(page, href, config);
+      if (result && (result.openings > 0 || result.atsDetected)) return result;
+    }
+  } catch { /* fall through to path guessing */ }
+
+  // --- 2. every common path, in random order --------------------------------
+  const paths = [...config.careersValidation.candidatePaths].sort(() => Math.random() - 0.5);
+  for (const p of paths) {
+    try {
+      const result = await readCareersPage(page, origin + p, config);
+      if (result && (result.openings > 0 || result.atsDetected)) return result;
+    } catch { /* dead path, next */ }
   }
 
   return null;

@@ -14,7 +14,7 @@
  * Produces: domain, region, socials, careers URL, live openings, ATS.
  */
 
-const { humanDelay, sleep, humanScroll } = require('../humanize');
+const { humanDelay, sleep, quickScroll } = require('../humanize');
 const { probeCareers, guessDomains } = require('../careers');
 const { regionOf } = require('../venn');
 const { upsertCompany, addSignal } = require('../db');
@@ -31,6 +31,9 @@ const { upsertCompany, addSignal } = require('../db');
  * its own website, so collecting them is a single ordinary page fetch. When
  * the GTM widens past LinkedIn, the channel data is already sitting in the DB.
  */
+/** Small settle delay — enough for render, not a behavioural performance. */
+function randSettle() { return 250 + Math.random() * 450; }
+
 async function extractSocials(page) {
   return page.evaluate(() => {
     const out = {};
@@ -147,8 +150,8 @@ async function enrichCompany(db, webPage, company, config, persona) {
   let socials = {}, region = null, size = null;
   try {
     await webPage.goto(domain, { waitUntil: 'domcontentloaded', timeout: config.careersValidation.timeoutMs });
-    await sleep(humanDelay(1200, 3000));
-    await humanScroll(webPage, persona, { depth: 'partial' }); // footers need a scroll
+    await sleep(randSettle());
+    await quickScroll(webPage); // footers need a scroll; nobody here is watching pace
     socials = await extractSocials(webPage);
     region = await inferRegion(webPage, domain, config);
     size = await inferSize(webPage);
@@ -159,7 +162,7 @@ async function enrichCompany(db, webPage, company, config, persona) {
   let careers = null;
   if (config.careersValidation.enabled) {
     try {
-      careers = await probeCareers(webPage, domain, config, persona);
+      careers = await probeCareers(webPage, domain, config);
     } catch { /* careers page is optional */ }
   }
 
