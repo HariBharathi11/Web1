@@ -8,8 +8,11 @@
  * Currently populated:
  *   hiring_volume    — counted live openings on the company's own careers page
  *   ats              — ATS embed detected on that page
- *   post_engagement  — the person interacted with our content (Lane B)
  *   recent_connection— connected in the last 90 days, so the intro is still warm
+ *
+ *   post_engagement  — populated by lanes/engagement.js from the reactions on
+ *                      your own posts. These are the warmest leads in the
+ *                      system: they raised their hand in public.
  *
  * Declared in the schema but NOT populated, deliberately:
  *   funding, new_leader — both are strong timing signals and both need a data

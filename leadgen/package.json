@@ -13,7 +13,10 @@
     "sync": "node --no-warnings src/index.js sync",
     "test": "node --no-warnings --test test/*.test.js",
     "smoke": "node --no-warnings test/smoke.js",
-    "revenue": "node --no-warnings src/index.js revenue"
+    "revenue": "node --no-warnings src/index.js revenue",
+    "network": "node --no-warnings src/index.js network",
+    "profile": "node --no-warnings src/index.js profile",
+    "engage": "node --no-warnings src/index.js engage"
   },
   "keywords": [],
   "author": "",

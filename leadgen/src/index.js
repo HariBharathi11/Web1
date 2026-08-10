@@ -4,6 +4,9 @@
  *
  *   node src/index.js verify          preflight: browser, credentials, sheet, caps
  *   node src/index.js revenue         map the pipeline against the revenue target
+ *   node src/index.js network         what is in your network (no browser, no risk)
+ *   node src/index.js profile         audit your own profile for conversions
+ *   node src/index.js engage          harvest engagers from your own posts (Lane B)
  *   node src/index.js warm            import Connections.csv (no browser, no risk)
  *   node src/index.js enrich          enrich companies from their own websites
  *   node src/index.js score           re-score every account through the Venn
@@ -321,6 +324,99 @@ async function laneCold(db) {
 }
 
 // ---------------------------------------------------------------------------
+// Profile audit — reads your OWN profile. One profile view.
+// ---------------------------------------------------------------------------
+
+async function laneProfile(db) {
+  console.log('\n▸ Profile audit — your account as a landing page');
+
+  const { extractProfile, extractActivity } = require('./profile/extract');
+  const Audit = require('./profile/audit');
+
+  const persona = H.newPersona();
+  const { context } = await S.launchSession(config, PROFILE);
+  const page = await context.newPage();
+
+  try {
+    await S.ensureLoggedIn(page, persona, { timeoutMinutes: config.browser?.loginTimeoutMinutes || 10 });
+
+    await page.goto('https://www.linkedin.com/in/me/', { waitUntil: 'domcontentloaded' });
+    await H.sleep(H.humanDelay(2500, 5000));
+
+    const blocked = await S.detectBlock(page);
+    if (blocked) throw new Error(`BLOCKED: ${blocked}`);
+
+    // Read it the way a visitor would before pulling anything out of the DOM.
+    await H.humanScroll(page, persona, { depth: 'full' });
+    const profileUrl = page.url().split('?')[0];
+
+    const profile = await extractProfile(page);
+    await H.pause(persona, config.pacing.actionDelayMs);
+    const activity = await extractActivity(page, profileUrl, persona);
+
+    const result = Audit.audit(profile, activity, config);
+    Audit.report(result, profile, config);
+
+    fs.mkdirSync(path.resolve(__dirname, '..', 'output'), { recursive: true });
+    const file = path.resolve(__dirname, '..', 'output', 'profile-audit.json');
+    fs.writeFileSync(file, JSON.stringify({ profile, activity, result }, null, 2));
+    console.log(`  Saved: ${file}`);
+
+    return { result, profile, activity, profileUrl };
+  } catch (e) {
+    console.log(`  ! ${e.message.split('\n')[0]}`);
+    return null;
+  } finally {
+    await context.close().catch(() => {});
+    S.recordRun(config, { profilesViewed: 1 });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Lane B — engagement harvest
+// ---------------------------------------------------------------------------
+
+async function laneEngage(db) {
+  console.log('\n▸ Lane B — engagement harvest (your own posts)');
+
+  const gate = S.checkGovernor(config);
+  if (!gate.ok && !FORCE) {
+    console.log(`   ⛔ Governor: ${gate.reason}`);
+    return { icp: 0 };
+  }
+
+  const { harvestEngagement } = require('./lanes/engagement');
+  const persona = H.newPersona();
+  const { context } = await S.launchSession(config, PROFILE);
+  const page = await context.newPage();
+
+  let stats = { icp: 0 };
+  try {
+    await S.ensureLoggedIn(page, persona, { timeoutMinutes: config.browser?.loginTimeoutMinutes || 10 });
+    await page.goto('https://www.linkedin.com/in/me/', { waitUntil: 'domcontentloaded' });
+    await H.sleep(H.humanDelay(2000, 4000));
+    const profileUrl = page.url().split('?')[0];
+
+    stats = await harvestEngagement(db, page, config, persona, profileUrl, {
+      maxPosts: LIMIT || 5,
+    });
+
+    if (stats.note) console.log(`   ${stats.note}`);
+    else {
+      console.log(`   ${stats.posts} posts read → ${stats.engagers} engagers → ${stats.icp} ICP kept (${stats.skipped} not ICP)`);
+      console.log(`   ${stats.signals} post_engagement signals written across ${stats.companies} companies`);
+      if (stats.icp) console.log('   These now score +15 Access and +12 Timing, and get the "engaged" angle.');
+    }
+  } catch (e) {
+    console.log(`   ! ${e.message.split('\n')[0]}`);
+  } finally {
+    await context.close().catch(() => {});
+    S.recordRun(config, { profilesViewed: stats.posts || 1 });
+  }
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
 // Sheets
 // ---------------------------------------------------------------------------
 
@@ -354,6 +450,9 @@ async function main() {
   switch (command) {
     case 'verify':  await require('./verify').verify(config); break;
     case 'revenue': require('./revenue').report(config); break;
+    case 'network': require('./lanes/network').report(db, config); break;
+    case 'profile': await laneProfile(db); break;
+    case 'engage':  await laneEngage(db); break;
     case 'warm':   laneWarm(db); break;
     case 'enrich': await laneEnrich(db); break;
     case 'score':  bands = laneScore(db); break;
@@ -373,7 +472,7 @@ async function main() {
       break;
 
     default:
-      console.log(`\nUnknown command "${command}". Try: verify | revenue | warm | enrich | score | draft | cold | sync | daily`);
+      console.log(`\nUnknown command "${command}". Try: verify | revenue | network | profile | engage | warm | enrich | score | draft | cold | sync | daily`);
       process.exit(1);
   }
 

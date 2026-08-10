@@ -64,6 +64,9 @@ Once you are in, the Edge profile at `.state/profiles/default/` keeps the sessio
 | Command | Browser? | LinkedIn? | Time | What it does |
 |---|---|---|---|---|
 | `npm run verify` | no | no | 10s | Preflight |
+| `npm run network` | no | **no** | 2s | What is in your network — segments, seniority, gaps |
+| `npm run profile` | Edge | yes (1 view) | ~2 min | Audit your own profile for conversions |
+| `npm run engage` | Edge | yes (low) | ~5 min | Harvest engagers from your own posts |
 | `npm run warm` | no | no | 2s | Import connections → companies + people |
 | `npm run enrich` | Edge (background) | **no** | ~3s/company | Company sites: careers page, openings, ATS, region, socials |
 | `npm run score` | no | no | 1s | Re-score every account through the Venn |
@@ -99,6 +102,23 @@ Open your Sheet → **Daily Actions** tab. It is ordered by account priority. Wo
 Mark `Done? = y` as you go, and fill `Sent On` in Message Drafts.
 
 **Send at most 15–20 a day**, spread out. That ceiling is the real constraint on the whole operation — see §5.
+
+### Weekly — the two that compound
+
+```bash
+npm run profile     # Monday. Re-audit after you make changes.
+npm run engage      # after any post that got traction
+```
+
+`profile` is the highest-leverage thing in this repo that is not the connections
+export. Every recipient who considers replying clicks your profile first, so a
+fix there improves every message you will ever send — including ones already
+sitting unread.
+
+`engage` reads the reactions on your own posts and pulls ICP engagers into the
+pipeline with a `post_engagement` signal. Those people raised their hand in
+public: they score **+15 Access and +12 Timing** and get a dedicated opener
+instead of a cold one. Run it the day after a post lands.
 
 ### Optional, once or twice a day
 
@@ -159,6 +179,33 @@ The governor enforces the caps whether a human or cron started the run.
 
 ---
 
+## 5a. Optimising the account for conversions
+
+Run `npm run network` first — it needs no browser and answers whether your
+network can even support the target. Then `npm run profile`.
+
+The profile rubric is scored for **outbound conversion**, not general profile
+advice. It weights what a CHRO actually sees in the eight seconds after clicking
+through from your message:
+
+| Element | Weight | Why |
+|---|---|---|
+| Headline | 20 | Renders next to every message and comment you send |
+| Featured | 20 | The only place a profile can hold a *direct conversion path* |
+| About | 15 | Only the first two lines are read before "see more" |
+| Recent activity | 15 | An empty feed quietly discredits you |
+| Banner | 10 | Free advertising on every profile view |
+| CTA button | 8 | Sits under the headline — first clickable thing |
+| Social proof | 7 | Recommendations from HR/staffing people specifically |
+| Basics | 5 | Photo, reach |
+
+It prints replacement headline and About copy. Every claim in that copy traces to
+the buyer's guide — a test asserts it never says "SOC 2 certified", never
+guarantees anything, and never implies MinMaxHR is an ATS.
+
+**The audit reads and reports. It never edits your profile.** Same posture as the
+message drafts: the tool prepares, you decide.
+
 ## 6. When something looks wrong
 
 | What you see | What it means |
@@ -169,7 +216,9 @@ The governor enforces the caps whether a human or cron started the run.
 | Many drafts `WITHHELD` | Enrichment could not verify a volume claim. Better withheld than wrong — check the Companies tab for that company. |
 | `Could not launch Microsoft Edge` | `npx playwright install msedge`, or set `browser.channel` to `null` in `config.json` to use bundled Chromium. |
 | Sheets 403 | Share the Sheet with the service account's `client_email` as Editor. |
-| Sign-in loops | Delete `.state/profiles/default/` and run `npm run cold` again to sign in fresh. |
+| Sign-in loops | Delete `.state/profiles/default/` and run `npm run profile` again to sign in fresh. |
+| `npm run engage` finds no posts | You have not posted recently. This lane converts posts into leads, so it produces nothing until there are posts to harvest. |
+| Profile audit fields blank | LinkedIn changed its DOM. The extractor distinguishes "missing" from "unreadable" — check `output/profile-audit.json` for what it actually saw. |
 
 ---
 
