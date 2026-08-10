@@ -1,0 +1,86 @@
+{
+  "product": {
+    "name": "MinMaxHR",
+    "trialLink": "https://minmaxhr.com/signup",
+    "senderName": "CHANGE_ME",
+    "senderCompany": "HAB Business Solutions"
+  },
+
+  "searches": [
+    {
+      "label": "CHRO India",
+      "keywords": "CHRO India",
+      "titleHints": ["chro", "chief human resources", "chief people officer"]
+    },
+    {
+      "label": "Staffing Agency India HR",
+      "keywords": "Staffing Agency India HR",
+      "titleHints": ["staffing", "recruitment", "talent acquisition", "rpo"]
+    },
+    {
+      "label": "VP HR India",
+      "keywords": "VP Human Resources India",
+      "titleHints": ["vp hr", "vice president human resources", "head of hr"]
+    },
+    {
+      "label": "TA Lead India",
+      "keywords": "Talent Acquisition Lead India",
+      "titleHints": ["talent acquisition", "ta lead", "recruitment manager"]
+    }
+  ],
+
+  "targetLeadCount": 20,
+
+  "limits": {
+    "maxProfilesPerRun": 25,
+    "maxProfileVisitsPerRun": 20,
+    "maxSearchPagesPerRun": 3,
+    "maxRunsPerDay": 2,
+    "cooldownBetweenRunsMinutes": 180,
+    "hardDailyProfileCap": 40,
+    "activeHours": { "startHour": 9, "endHour": 20, "timezone": "Asia/Kolkata" },
+    "skipWeekends": true
+  },
+
+  "pacing": {
+    "actionDelayMs": [2000, 3000],
+    "pageDwellMs": [4000, 11000],
+    "profileDwellMs": [8000, 22000],
+    "longBreakEveryNProfiles": [5, 8],
+    "longBreakMs": [45000, 150000],
+    "typingDelayMs": [90, 260],
+    "abandonRate": 0.12,
+    "backtrackRate": 0.25
+  },
+
+  "scoring": {
+    "tier1TitleRegex": "(chro|chief human resource|chief people|chief talent|(vp|v\\.p\\.|vice president)[ ,\\-]*(of )?(human resource|people|hr|talent)|(head|director) of (hr|human resource|people|talent)|hr director|people director|cxo)",
+    "tier2TitleRegex": "(hr manager|human resources? manager|talent acquisition|ta lead|recruit(ment|ing) (lead|manager|head|director)|hiring manager|people ops|hr business partner|hrbp|hr lead|staffing manager)",
+    "highVolumeQuarterlyHires": 100,
+    "midMarketOpenRolesMin": 8,
+    "priorityThreshold": 75
+  },
+
+  "careersValidation": {
+    "enabled": true,
+    "timeoutMs": 25000,
+    "maxCompaniesPerRun": 20,
+    "candidatePaths": [
+      "/careers", "/careers/", "/jobs", "/job-openings", "/work-with-us",
+      "/company/careers", "/about/careers", "/current-openings", "/openings"
+    ]
+  },
+
+  "sheets": {
+    "spreadsheetId": "CHANGE_ME",
+    "leadsTab": "Leads",
+    "draftsTab": "Message Drafts",
+    "runLogTab": "Run Log"
+  },
+
+  "outreach": {
+    "draftOnly": true,
+    "topNForMessages": 10,
+    "template": "Hi {{firstName}} — I noticed {{company}} posts {{roleVolume}} new roles a month. I'm guessing screening the first 100 applications is eating into TA time.\nWe built MinMaxHR to rank and explain every applicant in 24 hours instead of 4 days. Try it free on one live role: {{link}}. Reply here if interested."
+  }
+}

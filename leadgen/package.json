@@ -1,0 +1,19 @@
+{
+  "name": "minmaxhr-linkedin-lead-engine",
+  "version": "1.0.0",
+  "description": "Scores LinkedIn HR decision-makers against the MinMaxHR ICP and drafts (never sends) outreach.",
+  "scripts": {
+    "run": "node src/index.js",
+    "dry-run": "node src/index.js --dry-run",
+    "smoke": "node test/smoke.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "googleapis": "^174.0.1",
+    "playwright": "^1.62.1"
+  },
+  "private": true
+}
