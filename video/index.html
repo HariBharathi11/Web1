@@ -2,88 +2,398 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
+    <meta name="viewport" content="width=1080, height=1920" />
     <script src="vendor/gsap.min.js"></script>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+      :root {
+        --mm-blue: #0066ff;
+        --mm-blue-soft: #6ea8ff;
+        --mm-green: #10b981;
+        --mm-amber: #f59e0b;
+        --mm-red: #ef4444;
+        --mm-ink: #05070e;
+        --mm-navy: #0b1226;
       }
-      html,
-      body {
-        margin: 0;
-        width: 1920px;
-        height: 1080px;
-        overflow: hidden;
-        background: #000;
-      }
-      body {
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1920px; overflow: hidden;
+        background: var(--mm-ink);
         font-family: "Inter", sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
-      code,
-      pre,
-      .monospace {
-        font-family: "JetBrains Mono", monospace;
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+
+      /* ---------- shared ---------- */
+      .scene { position: absolute; inset: 0; }
+      .ground {
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(120% 70% at 50% 8%, #111a2e 0%, #05070e 62%),
+          var(--mm-ink);
       }
-      #bg {
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at 30% 30%, #1d2b64, #0a0a12 70%);
+      .vignette {
+        position: absolute; inset: 0; pointer-events: none;
+        background: radial-gradient(75% 55% at 50% 46%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.75) 100%);
       }
-      #stack {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 32px;
+      .line {
+        position: absolute; left: 90px; width: 900px;
+        color: #ffffff; font-weight: 700; letter-spacing: -2.5px; line-height: 1.02;
       }
-      #title {
-        font-size: 120px;
-        font-weight: 700;
-        color: #fff;
-        letter-spacing: -2px;
+      .kicker {
+        font-size: 30px; font-weight: 600; letter-spacing: 6px; text-transform: uppercase;
+        color: var(--mm-blue-soft);
       }
-      #subtitle {
-        font-size: 44px;
-        color: #9db2ff;
+
+      /* ---------- scene 1 : hook + cost ---------- */
+      #wall { position: absolute; inset: 0; }
+      .card {
+        position: absolute; width: 168px; height: 224px; border-radius: 10px;
+        background: linear-gradient(180deg, #dfe3ea 0%, #b9bfca 100%);
+        box-shadow: 0 24px 48px rgba(0,0,0,0.55);
+        opacity: 0;
       }
-      #rule {
-        width: 480px;
-        height: 4px;
-        background: #4f6bff;
-        transform-origin: left center;
+      .card i {
+        position: absolute; left: 16px; right: 16px; height: 7px; border-radius: 4px;
+        background: rgba(11,18,38,0.32); display: block;
       }
+      #s1-heat {
+        position: absolute; inset: 0; opacity: 0;
+        background: linear-gradient(0deg, rgba(239,68,68,0.42) 0%, rgba(239,68,68,0.10) 46%, rgba(239,68,68,0) 72%);
+      }
+      #s1-count { top: 250px; font-size: 132px; text-shadow: 0 8px 40px rgba(5,7,14,0.95); }
+      #s1-role  { top: 560px; font-size: 68px; color: #e3ebf7; letter-spacing: -1.5px;
+                  text-shadow: 0 6px 30px rgba(5,7,14,0.95); }
+      #s1-ask   { top: 1180px; font-size: 92px; text-shadow: 0 0 46px rgba(0,102,255,0.45); }
+      #cost-1 { top: 1150px; }
+      #cost-2 { top: 1272px; }
+      #cost-3 { top: 1394px; }
+      .cost { font-size: 60px; letter-spacing: -1.5px; color: #eef2f8; }
+      #s1-scrim { position: absolute; left: 0; right: 0; top: 940px; height: 760px;
+        background: linear-gradient(180deg, rgba(5,7,14,0) 0%, rgba(5,7,14,0.82) 38%, rgba(5,7,14,0.94) 100%); }
+
+      /* ---------- scene 2 : mechanism ---------- */
+      #s2-wash {
+        position: absolute; inset: 0;
+        background: radial-gradient(90% 50% at 50% 34%, rgba(0,102,255,0.30) 0%, rgba(0,102,255,0) 70%);
+        opacity: 0;
+      }
+      .rank {
+        position: absolute; left: 110px; width: 860px; height: 118px; border-radius: 16px;
+        background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.10);
+        display: flex; align-items: center; padding: 0 30px; gap: 26px;
+      }
+      .rank .n { font-size: 34px; font-weight: 700; color: #8fa0bd; width: 46px; }
+      .rank .bars { flex: 1; display: flex; flex-direction: column; gap: 11px; }
+      .rank .bars span { display: block; height: 9px; border-radius: 5px; background: rgba(255,255,255,0.20); }
+      .rank .pct { font-size: 34px; font-weight: 700; color: #8fa0bd; }
+      #rank-1 {
+        background: rgba(16,185,129,0.11); border: 1px solid rgba(16,185,129,0.55);
+        box-shadow: 0 0 0 1px rgba(16,185,129,0.18), 0 26px 70px rgba(16,185,129,0.20);
+      }
+      #rank-1 .n, #rank-1 .pct { color: var(--mm-green); }
+      #rank-1 .bars span { background: rgba(16,185,129,0.85); }
+      #rank-glow {
+        position: absolute; left: 40px; width: 1000px; height: 300px; border-radius: 50%;
+        background: radial-gradient(50% 50% at 50% 50%, rgba(16,185,129,0.55) 0%, rgba(16,185,129,0) 70%);
+        opacity: 0; filter: blur(28px); z-index: 1;
+      }
+      .dim {
+        position: absolute; font-size: 30px; font-weight: 600; color: #cfe0ff;
+        background: rgba(0,102,255,0.14); border: 1px solid rgba(110,168,255,0.35);
+        padding: 13px 24px; border-radius: 999px; opacity: 0; white-space: nowrap;
+      }
+      #s2-lead { top: 250px; font-size: 82px; }
+      #s2-sub  { top: 1420px; font-size: 54px; color: #c4d2ea; font-weight: 600; letter-spacing: -1px; }
+
+      /* ---------- scene 3 : proof ---------- */
+      #s3-lead { top: 470px; font-size: 84px; }
+      #s3-sub  { top: 1420px; font-size: 56px; color: #c4d2ea; font-weight: 600; letter-spacing: -1px; }
+      #s3-num  { top: 640px; font-size: 280px; color: var(--mm-blue-soft); letter-spacing: -12px;
+                 text-shadow: 0 0 90px rgba(0,102,255,0.55); }
+      #s3-check { position: absolute; left: 460px; top: 1050px; }
+
+      /* ---------- scene 4 : lockup ---------- */
+      #s4-glow {
+        position: absolute; left: 40px; top: 560px; width: 1000px; height: 520px; border-radius: 50%;
+        background: radial-gradient(50% 50% at 50% 50%, rgba(0,102,255,0.50) 0%, rgba(0,102,255,0) 70%);
+        opacity: 0; filter: blur(36px); z-index: 1;
+      }
+      #s4-logo { position: absolute; left: 90px; top: 700px; width: 900px; z-index: 2; opacity: 0; }
+      #s4-rule { position: absolute; left: 90px; top: 1000px; width: 900px; height: 2px;
+                 background: linear-gradient(90deg, rgba(0,102,255,0) 0%, var(--mm-blue) 50%, rgba(0,102,255,0) 100%);
+                 transform-origin: center; z-index: 2; }
+      #s4-slogan { top: 1060px; font-size: 44px; font-weight: 600; color: #dbe6f8; letter-spacing: -0.5px;
+                   text-align: center; left: 90px; z-index: 2; }
+      #s4-cta {
+        position: absolute; left: 190px; top: 1220px; width: 700px; z-index: 2;
+        background: var(--mm-blue); color: #fff; border-radius: 999px; text-align: center;
+        padding: 34px 0; font-size: 44px; font-weight: 700; letter-spacing: -0.5px;
+        box-shadow: 0 26px 70px rgba(0,102,255,0.45);
+      }
+      #s4-url { top: 1380px; font-size: 34px; font-weight: 600; color: #8fa0bd; text-align: center;
+                left: 90px; letter-spacing: 2px; z-index: 2; }
     </style>
   </head>
   <body>
     <div
       id="root"
-      data-composition-id="main"
+      data-composition-id="minmaxhr-vsl-vertical"
       data-start="0"
-      data-duration="6"
-      data-width="1920"
-      data-height="1080"
+      data-duration="20"
+      data-width="1080"
+      data-height="1920"
+      data-fps="30"
     >
-      <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
+      <!-- track 0 : permanent ground -->
+      <div id="ground" class="clip scene" data-start="0" data-duration="20" data-track-index="0">
+        <div class="ground"></div>
+      </div>
 
-      <div id="stack" class="clip" data-start="0" data-duration="6" data-track-index="1">
-        <h1 id="title">Web1</h1>
-        <div id="rule"></div>
-        <p id="subtitle">Videos built with HyperFrames</p>
+      <!-- track 1 : HOOK + COST (0.0 - 7.4) -->
+      <div id="s1" class="clip scene" data-start="0" data-duration="7.4" data-track-index="1">
+        <div id="wall"></div>
+        <div id="s1-heat"></div>
+        <div class="vignette"></div>
+        <div id="s1-scrim"></div>
+        <div id="s1-count" class="line">247 applications.</div>
+        <div id="s1-role" class="line">One role. One shortlist.</div>
+        <div id="s1-ask" class="line">Who deserves my<br />attention first?</div>
+        <div id="cost-1" class="line cost">My team screens by feel.</div>
+        <div id="cost-2" class="line cost">Good people get buried.</div>
+        <div id="cost-3" class="line cost" style="color:#ffd7d7">And I can't explain why.</div>
+      </div>
+
+      <!-- track 2 : MECHANISM (6.9 - 13.4) -->
+      <div id="s2" class="clip scene" data-start="6.9" data-duration="6.5" data-track-index="2">
+        <div id="s2-wash"></div>
+        <div class="vignette"></div>
+        <div id="rank-glow"></div>
+        <div id="s2-ranks"></div>
+        <div id="s2-lead" class="line">Ranked.<br />Explained.<br />Gaps shown.</div>
+        <div id="s2-sub" class="line">I see who fits — and what's missing.</div>
+      </div>
+
+      <!-- track 3 : PROOF / CONTROL (13.1 - 17.4) -->
+      <div id="s3" class="clip scene" data-start="13.1" data-duration="4.3" data-track-index="3">
+        <div class="vignette"></div>
+        <div id="s3-dims"></div>
+        <div id="s3-num" class="line" style="text-align:center;left:90px">8</div>
+        <div id="s3-lead" class="line" style="text-align:center;left:90px;top:400px;font-size:46px;color:#9aa6bd;letter-spacing:5px;text-transform:uppercase">Evaluation dimensions</div>
+        <div id="s3-sub" class="line" style="text-align:center">My people decide.<br />MinMaxHR keeps the evidence.</div>
+      </div>
+
+      <!-- track 4 : LOCKUP + CTA (17.1 - 20.0) -->
+      <div id="s4" class="clip scene" data-start="17.1" data-duration="2.9" data-track-index="4">
+        <div id="s4-glow"></div>
+        <img id="s4-logo" src="assets/brand/minmaxhr-logo-dark.png" alt="MinMaxHR" />
+        <div id="s4-rule"></div>
+        <div id="s4-slogan" class="line">With Minimum effort, Maximize Your Hiring Quality</div>
+        <div id="s4-cta">Start free — 100 resumes</div>
+        <div id="s4-url" class="line">MINMAXHR.COM</div>
       </div>
     </div>
 
     <script>
+      /* deterministic pseudo-random: same layout on every seek and every render */
+      function lcg(seed) {
+        let s = seed >>> 0;
+        return function () {
+          s = (s * 1664525 + 1013904223) >>> 0;
+          return s / 4294967296;
+        };
+      }
+
+      /* ---- scene 1: build the resume wall (48 cards, seeded) ---- */
+      const CARDS = 48;
+      (function buildWall() {
+        const rnd = lcg(20260815);
+        const wall = document.getElementById("wall");
+        for (let i = 0; i < CARDS; i++) {
+          const col = i % 6, row = Math.floor(i / 6);
+          const c = document.createElement("div");
+          c.className = "card";
+          c.id = "card-" + i;
+          c.style.left = 24 + col * 176 + (rnd() * 18 - 9) + "px";
+          c.style.top = 210 + row * 218 + (rnd() * 20 - 10) + "px";
+          c.dataset.rot = (rnd() * 9 - 4.5).toFixed(2);
+          c.style.transform = "rotate(" + c.dataset.rot + "deg)";
+          for (let k = 0; k < 5; k++) {
+            const b = document.createElement("i");
+            b.style.top = 34 + k * 26 + "px";
+            b.style.right = 16 + rnd() * 62 + "px";
+            c.appendChild(b);
+          }
+          wall.appendChild(c);
+        }
+      })();
+
+      /* ---- scene 2: ranked list ---- */
+      const RANKS = [
+        { pct: "94%", w: [1, 0.82, 1, 0.95] },
+        { pct: "71%", w: [0.7, 0.55, 0.62, 0.4] },
+        { pct: "66%", w: [0.6, 0.5, 0.45, 0.55] },
+        { pct: "58%", w: [0.5, 0.42, 0.5, 0.3] },
+      ];
+      (function buildRanks() {
+        const host = document.getElementById("s2-ranks");
+        RANKS.forEach(function (r, i) {
+          const el = document.createElement("div");
+          el.className = "rank";
+          el.id = "rank-" + (i + 1);
+          el.style.top = 700 + i * 148 + "px";
+          el.style.zIndex = i === 0 ? 2 : 1;
+          el.innerHTML =
+            '<div class="n">' + (i + 1) + "</div>" +
+            '<div class="bars">' +
+              r.w.map(function (w) { return '<span style="width:' + (w * 100) + '%"></span>'; }).join("") +
+            "</div>" +
+            '<div class="pct">' + r.pct + "</div>";
+          host.appendChild(el);
+        });
+        document.getElementById("rank-glow").style.top = "710px";
+      })();
+
+      /* ---- scene 3: the eight dimensions ---- */
+      const DIMS = ["Skills", "Tools", "Experience", "Education", "Certifications", "Projects", "Title fit", "Semantic fit"];
+      (function buildDims() {
+        const host = document.getElementById("s3-dims");
+        const cx = 540, cy = 860, r = 400;
+        DIMS.forEach(function (d, i) {
+          const a = (-Math.PI / 2) + (i * 2 * Math.PI) / DIMS.length;
+          const el = document.createElement("div");
+          el.className = "dim";
+          el.id = "dim-" + i;
+          el.textContent = d;
+          el.style.left = cx + Math.cos(a) * r + "px";
+          el.style.top = cy + Math.sin(a) * r * 0.95 + "px";
+          el.style.transform = "translate(-50%,-50%)";
+          host.appendChild(el);
+        });
+      })();
+
+      /* ================= TIMELINE ================= */
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      tl.from("#title", { opacity: 0, y: 60, duration: 1, ease: "power3.out" }, 0.2);
-      tl.from("#rule", { scaleX: 0, duration: 0.8, ease: "power2.out" }, 0.8);
-      tl.from("#subtitle", { opacity: 0, y: 24, duration: 0.9, ease: "power3.out" }, 1.1);
-      tl.to("#stack", { opacity: 0, duration: 0.6, ease: "power2.in" }, 5.2);
-      window.__timelines["main"] = tl;
+
+      /* audio beat markers for the future music/VO drop-in:
+         0.40 impact · 3.00 hook lands · 7.00 flip · 13.00 resolve · 17.10 lockup */
+
+      /* --- ground: never static (guards against sweep_static) --- */
+      tl.fromTo("#ground .ground", { scale: 1.0 }, { scale: 1.09, duration: 20, ease: "none" }, 0);
+      tl.fromTo("#ground .ground", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.35);
+
+      /* ---------------- SCENE 1 : HOOK (0.4 - 3.0) ---------------- */
+      /* 0.0-0.4 dead air: pure black pattern interrupt */
+      tl.fromTo("#s1", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 0.4);
+
+      /* first card lands alone, then the cascade accelerates */
+      tl.fromTo("#card-0",
+        { opacity: 0, y: -70, scale: 1.25 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power3.out" }, 0.45);
+
+      for (let i = 1; i < CARDS; i++) {
+        const t = 1.0 + Math.pow(i / CARDS, 1.7) * 1.75;
+        tl.fromTo("#card-" + i,
+          { opacity: 0, y: -110, scale: 1.18 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.42, ease: "power3.out" }, t);
+      }
+      /* the pile destabilises — slow, continuous, finite */
+      tl.fromTo("#wall", { y: 0, rotation: 0 }, { y: -120, rotation: -1.6, duration: 5.2, ease: "power1.inOut" }, 1.6);
+      tl.to("#wall", { filter: "saturate(0.15) brightness(0.62)", duration: 1.6, ease: "power2.inOut" }, 1.4);
+
+      tl.fromTo("#s1-count", { opacity: 0, y: 54, filter: "blur(14px)" },
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" }, 0.55);
+      tl.fromTo("#s1-role", { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 1.25);
+
+      /* the question — the hook must land by 3.0s */
+      tl.fromTo("#s1-ask", { opacity: 0, y: 60, filter: "blur(18px)" },
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.7, ease: "power3.out" }, 2.35);
+      tl.to("#s1-count", { opacity: 0.18, duration: 0.5, ease: "power2.inOut" }, 2.6);
+      tl.to("#s1-role", { opacity: 0.18, duration: 0.5, ease: "power2.inOut" }, 2.6);
+      tl.to(["#s1-count", "#s1-role"], { opacity: 0, duration: 0.45, ease: "power2.in" }, 3.35);
+
+      /* ---------------- SCENE 1b : COST (3.4 - 6.9) ---------------- */
+      tl.to("#s1-ask", { opacity: 0, y: -34, filter: "blur(10px)", duration: 0.45, ease: "power2.in" }, 3.35);
+      tl.fromTo("#s1-heat", { opacity: 0 }, { opacity: 1, duration: 1.5, ease: "power2.inOut" }, 3.4);
+
+      [["#cost-1", 3.75], ["#cost-2", 4.7], ["#cost-3", 5.6]].forEach(function (p) {
+        tl.fromTo(p[0], { opacity: 0, y: 42, filter: "blur(10px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: "power3.out" }, p[1]);
+      });
+      tl.to(["#cost-1", "#cost-2"], { opacity: 0.42, duration: 0.6, ease: "power2.out" }, 5.7);
+      tl.to("#cost-3", { scale: 1.045, duration: 1.1, ease: "power1.inOut", transformOrigin: "left center" }, 6.05);
+
+      /* ---------------- TRANSITION 1 : blur crossfade at 7.0 ---------------- */
+      tl.to("#s1", { opacity: 0, scale: 1.12, filter: "blur(26px)", duration: 0.5, ease: "power3.in" }, 6.95);
+
+      /* ---------------- SCENE 2 : MECHANISM (7.0 - 13.1) ---------------- */
+      tl.fromTo("#s2", { opacity: 0, scale: 0.94, filter: "blur(24px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.6, ease: "power3.out" }, 7.0);
+      tl.fromTo("#s2-wash", { opacity: 0 }, { opacity: 1, duration: 1.2, ease: "power2.out" }, 7.1);
+
+      tl.fromTo("#s2-lead", { opacity: 0, y: 52, filter: "blur(14px)" },
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.6, ease: "power3.out" }, 7.3);
+
+      /* chaos resolves into order — staggered, deliberate */
+      [1, 2, 3, 4].forEach(function (n, i) {
+        tl.fromTo("#rank-" + n,
+          { opacity: 0, x: 120 - i * 26, y: 40, rotation: 2.4 - i * 0.8 },
+          { opacity: 1, x: 0, y: 0, rotation: 0, duration: 0.62, ease: "power3.out" }, 8.0 + i * 0.19);
+      });
+      /* #1 lifts and takes the bloom (peak 0.42, under the 0.45 ceiling) */
+      tl.fromTo("#rank-glow", { opacity: 0, scale: 0.85 },
+        { opacity: 0.42, scale: 1, duration: 0.9, ease: "power2.out" }, 9.1);
+      tl.fromTo("#rank-1", { scale: 1 }, { scale: 1.045, duration: 0.7, ease: "power2.out" }, 9.1);
+      tl.fromTo("#rank-1 .bars span", { scaleX: 0, transformOrigin: "left center" },
+        { scaleX: 1, duration: 0.55, ease: "power2.out", stagger: 0.09 }, 9.4);
+      /* bounded breathe so nothing ever sits still */
+      tl.to("#rank-glow", { opacity: 0.30, scale: 1.06, duration: 1.7, ease: "sine.inOut" }, 10.4);
+      tl.to("#rank-glow", { opacity: 0.40, scale: 1.0, duration: 1.0, ease: "sine.inOut" }, 12.1);
+
+      tl.fromTo("#s2-sub", { opacity: 0, y: 40, filter: "blur(12px)" },
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.6, ease: "power3.out" }, 10.7);
+      tl.fromTo("#s2-ranks", { y: 0 }, { y: -46, duration: 3.0, ease: "power1.inOut" }, 10.2);
+
+      /* ---------------- TRANSITION 2 : lift at 13.1 ---------------- */
+      tl.to("#s2", { opacity: 0, y: -70, filter: "blur(20px)", duration: 0.5, ease: "power3.in" }, 13.1);
+
+      /* ---------------- SCENE 3 : PROOF / CONTROL (13.2 - 17.1) ---------------- */
+      tl.fromTo("#s3", { opacity: 0, scale: 1.06, filter: "blur(18px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.55, ease: "power3.out" }, 13.2);
+      tl.fromTo("#s3-num", { opacity: 0, scale: 0.7, filter: "blur(26px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.75, ease: "power3.out" }, 13.35);
+      tl.fromTo("#s3-lead", { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 13.8);
+      DIMS.forEach(function (d, i) {
+        tl.fromTo("#dim-" + i, { opacity: 0, scale: 0.78 },
+          { opacity: 1, scale: 1, duration: 0.42, ease: "back.out(1.6)" }, 13.95 + i * 0.075);
+      });
+      tl.fromTo("#s3-dims", { rotation: -3 }, { rotation: 2.2, duration: 3.4, ease: "sine.inOut", transformOrigin: "540px 860px" }, 13.9);
+      tl.fromTo("#s3-sub", { opacity: 0, y: 42, filter: "blur(12px)" },
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.62, ease: "power3.out" }, 14.9);
+      tl.to("#s3-num", { scale: 1.05, opacity: 0.9, duration: 1.9, ease: "sine.inOut" }, 15.0);
+
+      /* ---------------- TRANSITION 3 : dip to lockup at 17.1 ---------------- */
+      tl.to("#s3", { opacity: 0, scale: 0.95, filter: "blur(22px)", duration: 0.45, ease: "power3.in" }, 17.1);
+
+      /* ---------------- SCENE 4 : LOCKUP + CTA (17.1 - 20.0) ---------------- */
+      tl.fromTo("#s4", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 17.15);
+      tl.fromTo("#s4-glow", { opacity: 0, scale: 0.8 },
+        { opacity: 0.44, scale: 1, duration: 1.0, ease: "power2.out" }, 17.25);
+      tl.fromTo("#s4-logo", { opacity: 0, scale: 0.9, filter: "blur(20px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.85, ease: "power3.out" }, 17.3);
+      tl.fromTo("#s4-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power2.out" }, 17.85);
+      tl.fromTo("#s4-slogan", { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 18.0);
+      tl.fromTo("#s4-cta", { opacity: 0, y: 40, scale: 0.92 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.4)" }, 18.35);
+      tl.fromTo("#s4-url", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 18.75);
+      /* final-scene settle: the one place a hold-and-ease is allowed */
+      tl.to("#s4-glow", { opacity: 0.30, scale: 1.05, duration: 1.2, ease: "sine.inOut" }, 18.6);
+      tl.to("#s4-logo", { scale: 1.015, duration: 1.6, ease: "sine.inOut" }, 18.4);
+
+      window.__timelines["minmaxhr-vsl-vertical"] = tl;
     </script>
   </body>
 </html>

@@ -1,3 +1,4 @@
 renders/
 node_modules/
 .hyperframes/
+snapshots/
