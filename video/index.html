@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #000;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      code,
+      pre,
+      .monospace {
+        font-family: "JetBrains Mono", monospace;
+      }
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 30% 30%, #1d2b64, #0a0a12 70%);
+      }
+      #stack {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+      }
+      #title {
+        font-size: 120px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -2px;
+      }
+      #subtitle {
+        font-size: 44px;
+        color: #9db2ff;
+      }
+      #rule {
+        width: 480px;
+        height: 4px;
+        background: #4f6bff;
+        transform-origin: left center;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="6"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
+
+      <div id="stack" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <h1 id="title">Web1</h1>
+        <div id="rule"></div>
+        <p id="subtitle">Videos built with HyperFrames</p>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from("#title", { opacity: 0, y: 60, duration: 1, ease: "power3.out" }, 0.2);
+      tl.from("#rule", { scaleX: 0, duration: 0.8, ease: "power2.out" }, 0.8);
+      tl.from("#subtitle", { opacity: 0, y: 24, duration: 0.9, ease: "power3.out" }, 1.1);
+      tl.to("#stack", { opacity: 0, duration: 0.6, ease: "power2.in" }, 5.2);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
